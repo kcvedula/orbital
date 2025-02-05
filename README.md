@@ -17,9 +17,13 @@ a
 
 up 
 - look up
+
 down 
 - look down
+
 left 
 - look left
+
 right 
 - look right
+
