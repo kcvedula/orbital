@@ -1,29 +1,13 @@
 # orbital
 3D Molecular Rendering in Racket
 
-to run - clone and run sp2.rkt
+run sp2.rkt
 
-w
-- forward
+to move around use wasd, shift, and space bar
 
-s
- - backward
+to adjust camera, use arrow keys to look up, down, left, right
+and use 'q' and 'e' to roll to the left/right respectively
 
-d 
-- roll right
+enjoy
 
-a
- - roll left
-
-up 
-- look up
-
-down 
-- look down
-
-left 
-- look left
-
-right 
-- look right
 
