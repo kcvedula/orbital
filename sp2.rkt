@@ -61,8 +61,6 @@
   (define CR (carbon CRN))
   (define BL (bond RN CLN))
   (define BR (bond RN CRN))
-  (displayln RN)
-  (displayln (sym+ RN CLN))
   (define ACC-1 (join pict (list (sym+ RN 'left)) BL (list (sym+ RN CLN))))
   (define ACC-2 (join CL (list (sym+ CLN 'front)) ACC-1 (list (sym+ CLN RN))))
   (define ACC-3 (join BR (list (sym+ RN CRN)) ACC-2 (list (sym+ RN 'right))))
