@@ -1,13 +1,15 @@
 # orbital
 3D Molecular Rendering in Racket
 
-run sp2.rkt
+## To Explore
+Clone this repository and in the same directoy open a file and require.
 
-to move around use wasd, shift, and space bar
+Open test.rkt and use the defined 
 
-to adjust camera, use arrow keys to look up, down, left, right
-and use 'q' and 'e' to roll to the left/right respectively
 
-enjoy
+## Colors
+https://jmol.sourceforge.net/jscolors/
 
+## Atom Sizes
+https://pubchem.ncbi.nlm.nih.gov/ptable/atomic-radius/
 

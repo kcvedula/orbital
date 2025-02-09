@@ -1,7 +1,7 @@
 #lang racket
 (require pict3d)
 (require "./explore.rkt")
-
+(provide CARBON BOND sym+ bond carbon)
 (define CARBON (sphere origin 1))
 (define BOND (cylinder origin (dir .125 .125 2)))
 
@@ -46,7 +46,7 @@
 ; we want to abstract this to just give a range and it should work
 ; and we want to be able to nest these easily
 
-(define C1 (carbon 'c1))
+(define C1  (carbon 'c1))
 (define C2 (carbon 'c2))
 (define B1 (bond 'c1 'c2))
 (define TL-ACC-1 (join C1 '(c1front) B1 '(c2c1)))
@@ -70,4 +70,7 @@
 (define TL-ACC-4 (sp2/2 1 5 6 TL-ACC-3))
 (define TL-ACC-5 (sp2/2 3 7 8 TL-ACC-4))
 (define TL-ACC-6 (sp2/2 4 9 10 TL-ACC-5))
-(explore TL-ACC-6)
+(define TL-ACC-7 (sp2/2 9 11 12 TL-ACC-6))
+
+
+(explore TL-ACC-7)

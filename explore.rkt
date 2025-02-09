@@ -7,8 +7,8 @@
 (require "./gyroscope.rkt")
 
 (define FPS 144)
-(define DELTA-LOOK (angle->rad 1))
-(define DELTA-MOVE (/ 15 FPS))
+(define DELTA-LOOK (degrees->radians .5))
+(define DELTA-MOVE (/ 10 FPS))
 (define MOVE-KEYSET (set "w" "a" "s" "d" "shift" " "))
 (define LOOK-KEYSET (set "up" "down" "left" "right" "q" "e"))
 
@@ -84,4 +84,6 @@
     ("left" (look-right (- DELTA-LOOK) lt))
     ("down" (look-up (- DELTA-LOOK) lt)) 
     (_ (error `look-key->view "bad look key"))))
+
+(current-pict3d-fov 60)
 

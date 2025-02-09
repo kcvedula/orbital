@@ -1,7 +1,7 @@
 #lang racket
 
 (require pict3d)
-(provide look-right look-up roll-right angle->rad)
+(provide look-right look-up roll-right degrees->radians)
 ; goal:
 
 ; w - move forward
@@ -14,7 +14,7 @@
 ; given a linear transformation of form (linear right forward up)
 ; be able to look up, look right, or roll some theta
 
-(define (angle->rad ang)
+(define (degrees->radians ang)
   (* ang (/ pi 180)))
 
 (define (look-right theta lt)
