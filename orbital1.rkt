@@ -24,7 +24,7 @@
                    (combine
                     (move-z (sphere origin .25) -.5)
                     (move-z (sphere origin .25) .5)
-                   
+
                     (with-color (rgba "Light Blue") (ellipsoid origin (dir 1 1 2) #:inside? #t)))
                    (point-at (pos 0 0 2) -z)))
 
@@ -39,12 +39,12 @@
   (define t1 (point-at (pos 2 0 0) -x))
   (define t2 (point-at (pos -2 0 0) +x))
   (set-origin
-   (combine 
+   (combine
     (rotate-y (match scale
-      (1 BOND)
-      (2 (if rotate?  (combine BOND PI-BOND-Y) (combine BOND PI-BOND-X)))
-      (3 (combine BOND PI-BOND-Y PI-BOND-X))) 90)
-   
+                (1 BOND)
+                (2 (if rotate?  (combine BOND PI-BOND-Y) (combine BOND PI-BOND-X)))
+                (3 (combine BOND PI-BOND-Y PI-BOND-X))) 90)
+
     (basis 'temp t1))
    t2))
 
@@ -56,8 +56,8 @@
    '(temp)))
 
 (define (map-transforms transforms)
-  
-  (define tags (build-list (sub1 (length transforms)) (λ (n) (string->symbol (string-append "d" (number->string (add1 n)))))))
+  (define tags (build-list (sub1 (length transforms))
+                           (λ (n) (string->symbol (string-append "d" (number->string (add1 n)))))))
   (values
    tags
    (car transforms)
@@ -94,37 +94,34 @@
    #:RBD RBD
    #:rotate? (equal? RBD 2)))
 
-(define (sp2 [atom CARBON] #:d1 [d1 (bond-to HYDROGEN)] #:d2 [d2 (bond-to HYDROGEN)] #:up [up (group empty-pict3d 'R)]#:R [R #f] #:RBD [RBD 2])
+(define (sp2 [atom CARBON]
+             #:d1 [d1 (bond-to HYDROGEN)]
+             #:d2 [d2 (bond-to HYDROGEN)]
+             #:up [up (group empty-pict3d 'R)]
+             #:R [R #f]
+             #:RBD [RBD 2])
   (hybridize
    atom
    #:groups (list d1 d2 up)
-   #:transforms (list (point-at origin +x) (point-at origin (angles->dir 120 0)) (point-at origin (angles->dir -120 0)) (point-at origin +z))
+   #:transforms (list (point-at origin +x)
+                      (point-at origin (angles->dir 120 0))
+                      (point-at origin (angles->dir -120 0))
+                      (point-at origin +z))
    #:R R
    #:RBD RBD))
 
-(define (sp3 [atom CARBON] #:d1 [d1 (bond-to HYDROGEN)] #:d2 [d2 (bond-to HYDROGEN)] #:d3 [d3 (bond-to HYDROGEN)] #:R [R #f])
+(define (sp3 [atom CARBON]
+             #:d1 [d1 (bond-to HYDROGEN)]
+             #:d2 [d2 (bond-to HYDROGEN)]
+             #:d3 [d3 (bond-to HYDROGEN)]
+             #:R [R #f])
   (define (dirn dx dy dz) (dir-normalize (dir dx dy dz)))
   (hybridize
    atom
    #:groups (list d1 d2 d3)
    #:transforms (list
-                     (point-at origin (dirn 1 1 1))    
-                     (point-at origin (dirn 1 -1 -1))  
-                     (point-at origin (dirn -1 -1 1))
-                     (point-at origin (dirn -1 1 -1)))
+                 (point-at origin (dirn 1 1 1))
+                 (point-at origin (dirn 1 -1 -1))
+                 (point-at origin (dirn -1 -1 1))
+                 (point-at origin (dirn -1 1 -1)))
    #:R R))
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-

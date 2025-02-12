@@ -15,7 +15,6 @@
 ;; [1 1 -1]
 ;; [-1 1 1]
 
-
 (define (pos&dir x y z)
   (match-define (dir dx dy dz) (dir-normalize (dir x y z)))
   (values (pos dx dy dz) (dir dx dy dz)))
@@ -32,8 +31,7 @@
    (basis (sym+ name 'root) (call-with-values v1 point-at))
    (basis (sym+ name 'f) (call-with-values v2 point-at))
    (basis (sym+ name 'l) (call-with-values v3 point-at))
-   (basis (sym+ name 'r) (call-with-values v4 point-at))
-   ))
+   (basis (sym+ name 'r) (call-with-values v4 point-at))))
 (define carbon-sp3 (atom-sp3 CARBON))
 
 (define C-1 (carbon-sp3 'c1))
@@ -71,7 +69,6 @@
 (define TRIPLE-BOND (combine DOUBLE-BOND PI-BOND-Y))
 
 
-
 (define ELECTRON (sphere origin .25))
 (define LONE-PAIR (combine (move-x ELECTRON -.5) (move-x ELECTRON .5)))
 (define SHELL (with-color (rgba "lightblue") (rotate-z (ellipsoid origin (dir 1 2 1) #:inside? #t) 90)))
@@ -89,54 +86,38 @@
 
 
 (define C2H4 (join (join (carbon 'c1) '(c1left) (combine (bond 'c1 'c2) PI-BOND-X) '(c1c2))
-                  '(c2c1) (carbon 'c2) '(c2front)))
+                   '(c2c1) (carbon 'c2) '(c2front)))
 (define C2H2 (join (join (carbon 'c1) '(c1left) (combine (bond 'c1 'c2) PI-BOND-X PI-BOND-Y) '(c1c2))
-                  '(c2c1) (carbon 'c2) '(c2front)))
-
+                   '(c2c1) (carbon 'c2) '(c2front)))
 
 ;; h20
 
-
 (define OH-
-  
-  (local [
-  (define M-1 (lone-pair 'o1 1))
-  (define M-2 (join M-1 '(o1e1) (oxygen-sp3 'o1) '(o1root)))
-  (define M-3 (join (lone-pair 'o1 2) '(o1e2) M-2 '(o1l) ))
-  (define M-4 (join M-3 '(o1r) (bond 'o1 'h1) '(o1h1)))
-  (define M-5 (join M-4 '(h1o1) (hydrogen-sp3 'h1) '(h1root)))
-  (define M-6 (join M-5 '(o1f) (lone-pair 'o1 3) '(o1e3)))
-  ] 
-  M-6))
+  (local [(define M-1 (lone-pair 'o1 1))
+          (define M-2 (join M-1 '(o1e1) (oxygen-sp3 'o1) '(o1root)))
+          (define M-3 (join (lone-pair 'o1 2) '(o1e2) M-2 '(o1l) ))
+          (define M-4 (join M-3 '(o1r) (bond 'o1 'h1) '(o1h1)))
+          (define M-5 (join M-4 '(h1o1) (hydrogen-sp3 'h1) '(h1root)))
+          (define M-6 (join M-5 '(o1f) (lone-pair 'o1 3) '(o1e3)))]
+    M-6))
 
 (define H2O
-  (local [
-  (define M-1 (lone-pair 'o1 1))
-  (define M-2 (join M-1 '(o1e1) (oxygen-sp3 'o1) '(o1root)))
-  (define M-3 (join (lone-pair 'o1 2) '(o1e2) M-2 '(o1l) ))
-  (define M-4 (join M-3 '(o1r) (bond 'o1 'h1) '(o1h1)))
-  (define M-5 (join M-4 '(o1f) (bond 'o1 'h2) '(o1h2)))
-  (define M-6 (join M-5 '(h1o1) (hydrogen-sp3 'h1) '(h1root)))
-  (define M-7 (join M-6 '(h2o1) (hydrogen-sp3 'h2) '(h2root)))
-  ]
-  M-7))
+  (local [(define M-1 (lone-pair 'o1 1))
+          (define M-2 (join M-1 '(o1e1) (oxygen-sp3 'o1) '(o1root)))
+          (define M-3 (join (lone-pair 'o1 2) '(o1e2) M-2 '(o1l) ))
+          (define M-4 (join M-3 '(o1r) (bond 'o1 'h1) '(o1h1)))
+          (define M-5 (join M-4 '(o1f) (bond 'o1 'h2) '(o1h2)))
+          (define M-6 (join M-5 '(h1o1) (hydrogen-sp3 'h1) '(h1root)))
+          (define M-7 (join M-6 '(h2o1) (hydrogen-sp3 'h2) '(h2root)))]
+    M-7))
 
 (define H3O+
-  (local [
-  (define M-1 (lone-pair 'o1 1))
-  (define M-2 (join M-1 '(o1e1) (oxygen-sp3 'o1) '(o1root)))
-  (define M-3 (join M-2 '(o1r) (bond 'o1 'h1) '(o1h1)))
-  (define M-4 (join M-3 '(o1f) (bond 'o1 'h2) '(o1h2)))
-  (define M-5 (join M-4 '(o1l) (bond 'o1 'h3) '(o1h3)))
-  (define M-6 (join M-5 '(h1o1) (hydrogen-sp3 'h1) '(h1root)))
-  (define M-7 (join M-6 '(h2o1) (hydrogen-sp3 'h2) '(h2root)))
-  (define M-8 (join M-7 '(h3o1) (hydrogen-sp3 'h3) '(h3root)))
-  ]
-  M-8))
-
-
-
-
-
-
-
+  (local [(define M-1 (lone-pair 'o1 1))
+          (define M-2 (join M-1 '(o1e1) (oxygen-sp3 'o1) '(o1root)))
+          (define M-3 (join M-2 '(o1r) (bond 'o1 'h1) '(o1h1)))
+          (define M-4 (join M-3 '(o1f) (bond 'o1 'h2) '(o1h2)))
+          (define M-5 (join M-4 '(o1l) (bond 'o1 'h3) '(o1h3)))
+          (define M-6 (join M-5 '(h1o1) (hydrogen-sp3 'h1) '(h1root)))
+          (define M-7 (join M-6 '(h2o1) (hydrogen-sp3 'h2) '(h2root)))
+          (define M-8 (join M-7 '(h3o1) (hydrogen-sp3 'h3) '(h3root)))]
+    M-8))

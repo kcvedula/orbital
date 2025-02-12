@@ -27,8 +27,8 @@
   (atom 183 (make-color 166 41 41)))
 (define IODINE
   (atom 198  (make-color 148 0 148)))
-  
-; 1 valence 
+
+; 1 valence
 (define -H (bond-to HYDROGEN))
 (define -Cl (bond-to CHLORINE))
 (define -Br (bond-to BROMINE))

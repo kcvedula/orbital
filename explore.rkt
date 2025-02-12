@@ -1,7 +1,7 @@
 #lang racket
 
 (require pict3d
-        pict3d/universe)
+         pict3d/universe)
 
 (provide explore)
 (require "./gyroscope.rkt")
@@ -16,11 +16,11 @@
 
 (define (explore pict)
   (big-bang3d (init-ws pict)
-            #:on-draw on-draw
-            #:on-key on-key
-            #:on-release on-release
-            #:frame-delay (/ 1000 FPS)
-            #:on-frame on-frame))
+              #:on-draw on-draw
+              #:on-key on-key
+              #:on-release on-release
+              #:frame-delay (/ 1000 FPS)
+              #:on-frame on-frame))
 
 (define (init-ws pict)
   (let
@@ -46,12 +46,11 @@
   (combine
    ws.scene
    (sunlight forward)
-   (basis 'camera (point-at ws.pos forward #:up up))
-   ))
+   (basis 'camera (point-at ws.pos forward #:up up))))
 
 (define (on-key state n t k)
   (match-define (ws ws.scene ws.pos ws.view ws.keys) state)
-  (cond 
+  (cond
     [(set-member? (set-union MOVE-KEYSET LOOK-KEYSET) k)
      (ws ws.scene ws.pos ws.view (set-add ws.keys k))]
     [else state]))
@@ -82,8 +81,7 @@
     ("up" (look-up DELTA-LOOK lt))
     ("q" (roll-right (- DELTA-LOOK) lt))
     ("left" (look-right (- DELTA-LOOK) lt))
-    ("down" (look-up (- DELTA-LOOK) lt)) 
+    ("down" (look-up (- DELTA-LOOK) lt))
     (_ (error `look-key->view "bad look key"))))
 
 (current-pict3d-fov 60)
-

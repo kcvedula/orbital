@@ -4,13 +4,9 @@
 (require "orbital1.rkt")
 (require pict3d)
 
-
 ; TODO - Realistic oxygens in sp2, mechanism for carbon chain bonded to something
 (define -NONE (group empty-pict3d 'R))
 (define -OH_sp2 (sp2 OXYGEN #:d1 lone-pair #:up lone-pair #:RBD 1))
-
-
-
 
 (define (alkene #:da1 [a1 -H] #:da2 [a2 -H] #:db1 [b1 -H] #:db2 [b2 -H])
   (sp2 #:d1 a1 #:d2 b1 #:R (sp2 #:d1 a2 #:d2 b2)))
@@ -25,30 +21,33 @@
   (sp3 #:d1  (spin (sp3 #:d1 b1 #:d3 b3 #:d2 b2) (+ spin-num 60)) #:d2 f2 #:d3 f3 #:R f1))
 
 (define (chair/axial-root #:a1 [a1 #f] #:e1 [e1 -H]
-               #:a2 [a2 -H] #:e2 [e2 -H]
-               #:a3 [a3 -H] #:e3 [e3 -H]
-               #:a4 [a4 -H] #:e4 [e4 -H]
-               #:a5 [a5 -H] #:e5 [e5 -H]
-               #:a6 [a6 -H] #:e6 [e6 -H])
+                          #:a2 [a2 -H] #:e2 [e2 -H]
+                          #:a3 [a3 -H] #:e3 [e3 -H]
+                          #:a4 [a4 -H] #:e4 [e4 -H]
+                          #:a5 [a5 -H] #:e5 [e5 -H]
+                          #:a6 [a6 -H] #:e6 [e6 -H])
   (sp3 #:d1 e1 #:R a1
        #:d2 (spin (sp3 #:d1 e2 #:d3 a2
                        #:d2 (spin (sp3 #:d1 a3 #:d3 e3
                                        #:d2 (spin (sp3 #:d2 a4 #:d3 e4
                                                        #:d1 (sp3
-                                                             #:d1 a5 #:d3 e5 #:d2 (spin
-                                                                   (sp3 #:d2 a6 #:d3 e6
-                                                                    ) 60))) 60)) 60)) 60)))
+                                                             #:d1 a5 #:d3 e5
+                                                             #:d2 (spin
+                                                                   (sp3 #:d2 a6 #:d3 e6) 60)))
+                                                  60)) 60)) 60)))
 
 (define (chair/equatorial-root #:a1 [a1 -H] #:e1 [e1 #f]
-               #:a2 [a2 -H] #:e2 [e2 -H]
-               #:a3 [a3 -H] #:e3 [e3 -H]
-               #:a4 [a4 -H] #:e4 [e4 -H]
-               #:a5 [a5 -H] #:e5 [e5 -H]
-               #:a6 [a6 -H] #:e6 [e6 -H])
-          (sp3 #:d3 a1 #:R e1 #:d1
-               (sp3 #:d1 e2 #:d2 a2
-                    #:d3 (sp3 #:d1 e3 #:d3 a3
-                              #:d2 (spin (sp3 #:d1 a4 #:d3 e4 #:d2 (spin (sp3 #:d2 a5 #:d3 e5  #:d1 (sp3 #:d1 a6  #:d3 e6 )) 60)) 60)))))
+                               #:a2 [a2 -H] #:e2 [e2 -H]
+                               #:a3 [a3 -H] #:e3 [e3 -H]
+                               #:a4 [a4 -H] #:e4 [e4 -H]
+                               #:a5 [a5 -H] #:e5 [e5 -H]
+                               #:a6 [a6 -H] #:e6 [e6 -H])
+  (sp3 #:d3 a1 #:R e1 #:d1
+       (sp3 #:d1 e2 #:d2 a2
+            #:d3 (sp3 #:d1 e3 #:d3 a3
+                      #:d2 (spin (sp3 #:d1 a4 #:d3 e4 #:d2
+                                      (spin (sp3 #:d2 a5 #:d3 e5 #:d1
+                                                 (sp3 #:d1 a6 #:d3 e6)) 60)) 60)))))
 
 (define (test-chair/axial-root)
   (explore (chair/axial-root
@@ -69,9 +68,3 @@
             #:a6 -Cl #:e6 -Br)))
 
 (explore (chair/equatorial-root #:e4 -tBu #:e1 (spin -tBu 60)))
-
-
-
-
-
-

@@ -22,16 +22,13 @@
    CARBON
    (basis (sym+ name 'front) (call-with-values (thunk (surface/normal CARBON (yaw->dir 0))) point-at))
    (basis (sym+ name 'left) (call-with-values (thunk (surface/normal CARBON (yaw->dir 120))) point-at))
-   (basis (sym+ name 'right) (call-with-values (thunk (surface/normal CARBON (yaw->dir 240))) point-at))
-   ))
+   (basis (sym+ name 'right) (call-with-values (thunk (surface/normal CARBON (yaw->dir 240))) point-at))))
 
 (define (bond c1 c2)
   (combine
    BOND
    (basis (sym+ c2 c1) (point-at (pos 0 0 1) -z))
    (basis (sym+ c1 c2) (point-at (pos 0 0 -1) +z))))
-
-
 
 #;'(
 (define ACC-1 (join C1 '(c1front) B1 '(b1c1)))
