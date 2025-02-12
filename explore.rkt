@@ -8,7 +8,7 @@
 
 (define FPS 144)
 (define DELTA-LOOK (degrees->radians .5))
-(define DELTA-MOVE (/ 10 FPS))
+(define DELTA-MOVE (/ 20 FPS))
 (define MOVE-KEYSET (set "w" "a" "s" "d" "shift" " "))
 (define LOOK-KEYSET (set "up" "down" "left" "right" "q" "e"))
 

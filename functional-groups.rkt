@@ -38,9 +38,10 @@
 
 (define (carbon-chain [n 1] [R #f] #:hetero [hetero -H])
   (cond
-    [(equal? n 1) (sp3 #:d1 hetero)]
-    [else  (sp3 #:R R #:d3 (carbon-chain (sub1 n) #f #:hetero hetero))]
-    ))
+    [(equal? n 1) (sp3)]
+    [(equal? (remainder n 3) 0) (sp3  #:R R #:d1 (carbon-chain (sub1 n)))]
+    [(equal? (remainder n 3) 1)  (sp3 #:R R #:d2 (carbon-chain (sub1 n)))]
+    [(equal? (remainder n 3) 2)  (sp3 #:R R #:d3 (carbon-chain (sub1 n)))]))
 
 ; normal
 (define -Me (carbon-chain 1))
@@ -84,16 +85,14 @@
 
 (define (aryl #:d1 [d1 -H] #:d2 [d2 -H] #:d3 [d3 -H] #:d4 [d4 -H] #:d5 [d5 -H] #:R [R #f])
   (sp2 #:R R
-       #:d1 (group empty-pict3d 'R)
        #:RBD 1
-       #:d2 (sp2 #:RBD 2
+       #:d1 (sp2 #:RBD 2
                  #:d1 d1
                  #:d2 (sp2 #:RBD 1
-                           #:d2 d2
-                           #:d1 (sp2 #:RBD 2
+                           #:d1 d2
+                           #:d2 (sp2 #:RBD 2
                                      #:d1 d3
                                      #:d2 (sp2 #:RBD 1
-                                               #:d2 d4
-                                               #:d1 (sp2 #:d1 d5 #:RBD 2)))))))
+                                               #:d1 d4
+                                               #:d2 (sp2 #:d1 d5 #:RBD 2)))))))
 (define -Ph (aryl))
-

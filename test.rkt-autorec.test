@@ -1,6 +1,0 @@
-#lang racket
-(require "functional-groups.rkt")
-(require "explore.rkt")
-(require "orbital1.rkt")
-
-(explore (sp3 OXYGEN #:d1 -Ph #:R -Ph))
