@@ -1,9 +1,10 @@
-#lang racket
-(require pict3d)
-(require pict3d/universe)
-(require "gyroscope.rkt")
-(require "sp2.rkt")
-(require "explore.rkt")
+#lang typed/racket
+(require pict3d
+         pict3d/universe
+         "gyroscope.rkt"
+         "sp2.rkt"
+         "explore.rkt"
+         "utils.rkt")
 ;; the points of a tetrahedron
 ;; [0 0 0]
 ;; [1 0 1]
@@ -15,16 +16,20 @@
 ;; [1 1 -1]
 ;; [-1 1 1]
 
+(: pos&dir (-> Real Real Real (Values Pos Dir)))
 (define (pos&dir x y z)
   (match-define (dir dx dy dz) (dir-normalize (dir x y z)))
   (values (pos dx dy dz) (dir dx dy dz)))
 
 (define (v1) (pos&dir 1 1 1)) ;; p1
-(define (v2)  (pos&dir -1 -1 1)) ;; p2
+(define (v2) (pos&dir -1 -1 1)) ;; p2
 (define (v3) (pos&dir 1 -1 -1))
 (define (v4) (pos&dir -1 1 -1))
+
 ;; bond has it's connector arrow in +z
 ;; sp3 atom has connector arrow in (dir 1 1 1)
+
+(: atom-sp3 (-> Pict3D (-> Sym/Int Pict3D)))
 (define ((atom-sp3 atom-pict) name)
   (combine
    atom-pict
@@ -68,12 +73,12 @@
 (define DOUBLE-BOND (combine BOND PI-BOND-X))
 (define TRIPLE-BOND (combine DOUBLE-BOND PI-BOND-Y))
 
-
 (define ELECTRON (sphere origin .25))
 (define LONE-PAIR (combine (move-x ELECTRON -.5) (move-x ELECTRON .5)))
 (define SHELL (with-color (rgba "lightblue") (rotate-z (ellipsoid origin (dir 1 2 1) #:inside? #t) 90)))
 (define LONE-PAIR-WITH-SHELL (combine SHELL LONE-PAIR))
 
+(: lone-pair (-> Sym/Int Integer Pict3D))
 (define (lone-pair atom num)
   (combine
    LONE-PAIR-WITH-SHELL
@@ -83,7 +88,6 @@
 (define HYDROGEN (sphere origin .5))
 (define oxygen-sp3 (atom-sp3 OXYGEN))
 (define hydrogen-sp3 (atom-sp3 HYDROGEN))
-
 
 (define C2H4 (join (join (carbon 'c1) '(c1left) (combine (bond 'c1 'c2) PI-BOND-X) '(c1c2))
                    '(c2c1) (carbon 'c2) '(c2front)))

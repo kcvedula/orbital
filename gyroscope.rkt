@@ -1,4 +1,4 @@
-#lang racket
+#lang typed/racket
 
 (require pict3d)
 (provide look-right look-up roll-right degrees->radians)
@@ -14,9 +14,11 @@
 ; given a linear transformation of form (linear right forward up)
 ; be able to look up, look right, or roll some theta
 
+(: degrees->radians (-> Real Real))
 (define (degrees->radians ang)
   (* ang (/ pi 180)))
 
+(: look-right (-> Real Linear Linear))
 (define (look-right theta lt)
   (match-define (linear R1 F1 U) lt)
   (define F2
@@ -27,6 +29,7 @@
 
 #;((look-right identity-linear) (/ pi 6))
 
+(: look-up (-> Real Linear Linear))
 (define (look-up theta lt)
   (match-define (linear R F1 U1) lt)
   (define F2
@@ -37,6 +40,7 @@
 
 #;((look-up identity-linear) (/ pi 6))
 
+(: roll-right (-> Real Linear Linear))
 (define (roll-right theta lt)
   (match-define (linear R1 F U1) lt)
   (define R2

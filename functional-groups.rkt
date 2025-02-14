@@ -1,9 +1,9 @@
-#lang racket
+#lang typed/racket
 
-(require "orbital1.rkt")
-(require "explore.rkt")
-(require racket/draw)
-(require pict3d)
+(require "orbital1.rkt"
+         "explore.rkt"
+         typed/racket/draw
+         pict3d)
 
 (provide (all-defined-out))
 ; Atoms, already get HYDROGEN AND CARBON
@@ -36,12 +36,16 @@
 
 ; Carbon Groups
 
+;; TODO: should this allow negatives?
+(: carbon-chain (->* () (Integer (U False Pict3D) #:hetero Pict3D) Pict3D))
+;; Creates a carbon chain
 (define (carbon-chain [n 1] [R #f] #:hetero [hetero -H])
   (cond
     [(equal? n 1) (sp3)]
-    [(equal? (remainder n 3) 0) (sp3  #:R R #:d1 (carbon-chain (sub1 n)))]
-    [(equal? (remainder n 3) 1)  (sp3 #:R R #:d2 (carbon-chain (sub1 n)))]
-    [(equal? (remainder n 3) 2)  (sp3 #:R R #:d3 (carbon-chain (sub1 n)))]))
+    [(equal? (remainder n 3) 0) (sp3 #:R R #:d1 (carbon-chain (sub1 n)))]
+    [(equal? (remainder n 3) 1) (sp3 #:R R #:d2 (carbon-chain (sub1 n)))]
+    [(equal? (remainder n 3) 2) (sp3 #:R R #:d3 (carbon-chain (sub1 n)))]
+    [else (error 'carbon-chain "unreachable")]))
 
 ; normal
 (define -Me (carbon-chain 1))
@@ -73,16 +77,21 @@
 
 (define -VINYL (sp #:RBD 2 #:d1 (sp2 NITROGEN)))
 
+(: carbonyl (->* (Pict3D) ((U False Pict3D)) Pict3D))
 (define (carbonyl d1 [R #f])
-  (sp2 CARBON #:d1 d1 #:d2 (sp2 OXYGEN #:d1 lone-pair #:d2 lone-pair)  #:R R #:RBD 1))
+  (sp2 CARBON #:d1 d1 #:d2 (sp2 OXYGEN #:d1 lone-pair #:d2 lone-pair) #:R R #:RBD 1))
 
-(define (aldehyde [R #f]) (carbonyl -H R))
+(: aldehyde (->* () ((U False Pict3D)) Pict3D))
+(define (aldehyde [R #f])
+  (carbonyl -H R))
 
+(: ether (->* (Pict3D) ((U False Pict3D)) Pict3D))
 (define (ether d1 [R #f])
   (sp3 OXYGEN #:d1 d1 #:d2 lone-pair #:d3 lone-pair #:R R))
 
 ; cyclic functional groups
 
+(: aryl (->* () (#:d1 Pict3D #:d2 Pict3D #:d3 Pict3D #:d4 Pict3D #:d5 Pict3D #:R (U False Pict3D)) Pict3D))
 (define (aryl #:d1 [d1 -H] #:d2 [d2 -H] #:d3 [d3 -H] #:d4 [d4 -H] #:d5 [d5 -H] #:R [R #f])
   (sp2 #:R R
        #:RBD 1

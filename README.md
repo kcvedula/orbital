@@ -2,7 +2,7 @@
 3D Molecular Rendering in Racket
 
 ## To Explore
-Clone this repository and in the same directoy open a file and require.
+Clone this repository and in the same directory open a file and require.
 
 Open test.rkt and use the defined 
 
