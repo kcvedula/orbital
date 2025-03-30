@@ -1,4 +1,9 @@
+*~
+\#*
+.\#*
+.DS_Store
+compiled/
+/doc/
+
 # ignore backups
 *.bak
-
-compiled/
