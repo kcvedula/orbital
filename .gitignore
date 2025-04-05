@@ -7,3 +7,5 @@ compiled/
 
 # ignore backups
 *.bak
+
+.racket-fhs-home
