@@ -32,9 +32,9 @@ The predicates shall evaluate true for fields of cleaned elements.
 |#
 
 (struct element
-  (atomic-number ; number?
+  [atomic-number ; number?
    symbol ; symbol?
-   name ; symbol? 
+   name ; symbol?
    atomic-mass ; number?
    cpk-color ; (or/c number? #f)
    electron-configuration ; string?
@@ -48,8 +48,8 @@ The predicates shall evaluate true for fields of cleaned elements.
    boiling-point ; number?
    density ; number?
    group-block ; string?
-   year-discovered ; (or/c number? #f)
-   ) #:prefab)
+   year-discovered] ; (or/c number? #f)
+  #:prefab)
 
 (define dirty-elements (map (λ (x) (apply element (hash-ref x 'Cell))) (hash-ref (hash-ref extracted-json 'Table) 'Row)))
 
@@ -66,7 +66,7 @@ The predicates shall evaluate true for fields of cleaned elements.
 
 (define (electron-configuration-mapper ec)
   (let* ((ec (string-split ec))
-        
+
          (ec (foldr
               (λ (x acc) (if (equal? (substring x 0 1) "[")
 
@@ -85,9 +85,9 @@ The predicates shall evaluate true for fields of cleaned elements.
                                                                  (string->number (substring x 2)))]
                        [(equal? (substring x 0 1) "(") #f]
                        [else (string->symbol x)]))
-             ec)))
+              ec)))
     ec))
-  
+
 (define (oxidation-states-mapper os)
   (cond [(equal? "" os) '()]
         [else (map (compose string->number string-trim) (string-split os ","))]))
@@ -103,25 +103,19 @@ The predicates shall evaluate true for fields of cleaned elements.
    (string->number (element-atomic-number e))
    (string->symbol (element-symbol e))
    (string->symbol (element-name e))
-   (string->number (element-atomic-mass e)) 
+   (string->number (element-atomic-mass e))
    (color-mapper (element-cpk-color e))
    (electron-configuration-mapper (element-electron-configuration e))
    (string->number (element-electronegativity e))
    (string->number (element-atomic-radius e))
-   (string->number (element-ionization-energy e)) 
-   (string->number (element-electron-affinity e)) 
-   (oxidation-states-mapper (element-oxidation-states e)) 
+   (string->number (element-ionization-energy e))
+   (string->number (element-electron-affinity e))
+   (oxidation-states-mapper (element-oxidation-states e))
    (standard-state-mapper (element-standard-state e))
    (string->number (element-melting-point e))
-   (string->number (element-boiling-point e)) 
-   (string->number (element-density e)) 
-   (element-group-block e) 
-   (string->number (element-year-discovered e)) 
-   ))
+   (string->number (element-boiling-point e))
+   (string->number (element-density e))
+   (element-group-block e)
+   (string->number (element-year-discovered e))))
 
 (define clean-elements (map clean-element dirty-elements))
-  
-   
-                                  
-
-
