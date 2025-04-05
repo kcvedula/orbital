@@ -8,12 +8,9 @@
 (require "functional-groups.rkt")
 (require "orbital1.rkt")
 
-
-
 (define (-Me/s t)
   (define TEMP (rotate-z -Me (* 36 (/ t 1000))))
-  TEMP
-  )
+  TEMP)
 
 (define (my-anim t)
   (sp3 #:d1 (rotate-z -Me (* 36 (/ t 1000)))))
