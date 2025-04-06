@@ -3,10 +3,56 @@
 (require parser-tools/lex
          parser-tools/yacc)
 
-;; Tokens with values
+;; <smiles>            ::= <chain>
+;; <chain>             ::= <bond> <branched-atom>
+;;                      |  <chain> <ring-bond>
+;;                      |  <chain> <bond> <ring-bond>
+;;                      |  <branched-atom>
+;;                      |  <chain> <branched-atom>
+;;                      |  <chain> <bond> <branched-atom>
+;;                      |  <chain> '.' <branched-atom>
+;; <ring-bond>         ::= <digit>
+;;                      |  '%' <number>
+;; <branched-atom>     ::= <atom> <branches>
+;;                      |  <atom>
+;; <branches>          ::= <branch>
+;;                      |  <branch> <branches>
+;; <branch>            ::= '(' <chain> ')'
+;; <atom>              ::= <bracket-atom>
+;;                      |  <aliphatic-organic>
+;;                      |  <aromatic-organic>
+;;                      |  '*'
+;; <aliphatic-organic> ::= 'B' | 'C' | 'N' | 'O' | 'S' | 'P' | 'F' | 'Cl' | 'Br' | 'I'
+;; <aromatic-organic>  ::= 'b' | 'c' | 'n' | 'o' | 's' | 'p' | 'se' | 'as'
+;; <bracket-atom>      ::= '[' <isotope>? <symbol> <chiral>? <hcount>? <charge>? <class>? ']'
+;; <isotope>           ::= <number>
+;;                      |  <digit>
+;; <symbol>            ::= <aliphatic-organic>
+;;                      |  <aromatic-organic>
+;;                      |  '*'
+;; <chiral>            ::= '@'
+;;                      |  '@@'
+;; <hcount>            ::= 'H' <number>
+;;                      |  'H' <digit>
+;;                      |  'H'
+;; <charge>            ::= '+' <digit>
+;;                      |  '+'
+;;                      |  '-' <digit>
+;;                      |  '-'
+;; <class>             ::= ':' <number>
+;;                      |  ':' <digit>
+;; <bond>              ::= '-'   ; single bond
+;;                      |  '='   ; double bond
+;;                      |  '#'   ; triple bond
+;;                      |  '$'   ; quadruple bond
+;;                      |  ':'   ; aromatic bond
+;;                      |  '/'   ; up bond
+;;                      |  '\\'  ; down bond
+;; <digit>             ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+;; <number>            ::= <digit> <digit>*
+
 (define-tokens value-tokens (NUMBER DIGIT))
 
-;; Tokens without values
 (define-empty-tokens tokens
   (LBRACKET RBRACKET LPAREN RPAREN
             DOT STAR PLUS MINUS COLON PERCENT
@@ -18,7 +64,6 @@
             BOND_SINGLE BOND_DOUBLE BOND_TRIPLE BOND_QUADRUPLE BOND_AROMATIC BOND_UP BOND_DOWN
             EOF))
 
-;; Lexer
 (define smiles-lexer
   (lexer-src-pos
    [(eof) (token-EOF)]
@@ -54,10 +99,9 @@
    ["/" (token-BOND_UP)]
    ["\\" (token-BOND_DOWN)]
    ["-" (token-BOND_SINGLE)]
-   [(repetition 1 +inf.0 numeric) (token-NUMBER (string->number lexeme))]
+   [(repetition 2 +inf.0 numeric) (token-NUMBER (string->number lexeme))]
    [numeric (token-DIGIT (string->number lexeme))]))
 
-;; Parser
 (define smiles-parser
   (parser
    (src-pos)
@@ -70,11 +114,16 @@
    (grammar
     [smiles ((chain) $1)]
 
-    ;; Chains and branching
-    [chain ((branched-atom) (list $1))
+    [chain ((bond branched-atom) (list (list 'bond $1) $2)) 
+           ((chain ring-bond) (append $1 (list $2)))
+           ((chain bond ring-bond) (append $1 (list (list 'bond $2) $3))) 
+           ((branched-atom) (list $1))
            ((chain branched-atom) (append $1 (list $2)))
            ((chain bond branched-atom) (append $1 (list (list 'bond $2) $3)))
            ((chain dot branched-atom) (append $1 (list (list 'bond '\.) $3)))]
+
+    [ring-bond ((DIGIT) `(ring ,$1))
+               ((PERCENT NUMBER) `(ring ,$2))]
 
     [branched-atom ((atom branches) `(branched ,$1 ,$2))
                    ((atom) `(branched ,$1 '()))]
@@ -84,7 +133,6 @@
 
     [branch ((LPAREN chain RPAREN) `(branch ,$2))]
 
-    ;; Atoms
     [atom ((bracket-atom) $1)
           ((aliphatic-organic) (list 'aliphatic $1))
           ((aromatic-organic)  (list 'aromatic $1))
@@ -99,11 +147,13 @@
                       ((AROMATIC_O) 'o) ((AROMATIC_S) 's) ((AROMATIC_P) 'p)
                       ((AROMATIC_SE) 'se) ((AROMATIC_AS) 'as)]
 
-    ;; Bracket atom
     [bracket-atom ((LBRACKET isotope? symbol chiral? hcount? charge? class? RBRACKET)
                    `(bracket ,@(filter values (list $2 $3 $4 $5 $6 $7))))]
 
-    [isotope? ((NUMBER) `(isotope ,$1)) (() #f)]
+
+    [isotope? ((NUMBER) `(isotope ,$1))
+              ((DIGIT) `(isotope ,$1))
+              (() #f)]
     [symbol ((aliphatic-organic) `(symbol ,$1))
             ((aromatic-organic)  `(symbol ,$1))
             ((STAR) '(symbol *))]
@@ -112,8 +162,10 @@
              ((AT_AT) '(chiral @@))
              (() #f)]
 
-    [hcount? ((H_COUNT NUMBER) `(hcount ,$2)) 
-             ((H_COUNT) '(hcount 1)) (() #f)]
+    [hcount? ((H_COUNT NUMBER) `(hcount ,$2))
+             ((H_COUNT DIGIT) `(hcount ,$2))
+             ((H_COUNT) '(hcount 1))
+             (() #f)]
 
     [charge? ((PLUS DIGIT) `(charge ,$2))
              ((PLUS) '(charge 1))
@@ -121,7 +173,9 @@
              ((MINUS) '(charge -1))
              (() #f)]
 
-    [class? ((COLON NUMBER) `(class ,$2)) (() #f)]
+    [class? ((COLON NUMBER) `(class ,$2))
+            ((COLON DIGIT) `(class ,$2))
+            (() #f)]
 
     [bond ((BOND_SINGLE) '-) ((BOND_DOUBLE) '=) ((BOND_TRIPLE) '\#)
           ((BOND_QUADRUPLE) '$) ((BOND_AROMATIC) ':)
@@ -129,14 +183,16 @@
 
     [dot ((DOT) '\.)])))
 
-;; Entry point
 (define (parse-smiles str)
   (define in (open-input-string str))
   (define (next-token) (smiles-lexer in))
   (smiles-parser next-token))
 
-(module+ main
-  (for ([s '("C" "CC" "C(C)C" "[13CH3]" "[O-]" "C=C" "F/C=C/F")])
+(module+ test
+  (for ([s '("C" "CC" "C(C)C" "[13CH3]" "[O-]" "C=C" "F/C=C/F" 
+                 "C1CCC1" "CC(=O)CC" "CCCCCCCC" "CCCC1CC1"
+                 "COc(c1)cccc1C#N"
+                 "N1CCN(CC1)C(C(F)=C2)=CC(=C2C4=O)N(C3CC3)C=C4C(=O)O")])
     (printf "~a\n=>\n" s)
     (pretty-print (parse-smiles s))
     (newline)))
