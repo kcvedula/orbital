@@ -2,7 +2,11 @@
 
 (provide
  explore-smiles
- smiles->pict3d)
+ explore-pid
+ explore-mol
+ smiles->pict3d
+ mol->pict3d
+ pid->pict3d)
          
 (require "core.rkt")
 (require "periodic-table.rkt")
@@ -172,11 +176,17 @@ How to work with a sdf string
 (define (mol->pict3d m)
   (smiles->pict3d (mol->smiles m)))
 
+(define (explore-mol m)
+  (explore (mol->pict3d m)))
+
 (define (explore-smiles s)
   (explore (smiles->pict3d s)))
 
 (define (explore-pid pid)
   (explore-smiles (pid->smiles pid)))
+
+(define (pid->pict3d pid)
+  (smiles->pict3d (pid->smiles pid)))
 
 (define (pid->smiles pid)
   (define PT-URL

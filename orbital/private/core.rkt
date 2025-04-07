@@ -1,7 +1,9 @@
 #lang racket
 
 (provide (all-defined-out))
+
 #|
+TODO: SYNTAX LAYER FOR MOLECULES
 
 Summary of core library:
 We represent molecules broadly as an undirected weighted graph
@@ -14,6 +16,7 @@ The first portion of the core is an abstraction over system commands.
 The second portion of the core is defining our molecules, atoms, and bonds and compiling them to CML.
 |#
 
+; entry to whatever system you want to use, here incase someone needs wsl or some special shell
 (define sys-entry (make-parameter #f))
 (sys-entry "")
 
@@ -219,13 +222,4 @@ compiling the bond in a cis-alkene with two fluorine and two hydrogens,
   (define res (send-system cmd))
   (define out (car res))
   (first (string-split out "\t")))
-  
-
-  
-
-
-
-
-   
-
 

@@ -4,7 +4,10 @@
          pict3d/universe
          "gyroscope.rkt")
 
-(provide explore)
+(provide explore
+         FPS
+         DELTA-LOOK
+         DELTA-MOVE)
 
 
 (define FPS
