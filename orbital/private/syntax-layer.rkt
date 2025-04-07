@@ -1,18 +1,11 @@
 ; TODO: consider using syntax-parse
-; 
-; FIXES:
-; 1. Updated combine-fragments to return a list containing the molecule and an empty list of exposed atoms
-;    This makes it compatible with the fragment macro when used in a chain of combinations
-; 2. Made necessary adjustments to the tests that use combine-fragments
-; 3. Commented out tests for ring-molecule and macrolide-ring due to some issues with parsing atoms
-;
 #lang racket
 
 (require "core.rkt"
          syntax/parse
          syntax/parse/define)
 
-(provide fragment molecule make-chain ring-molecule combine-fragments)
+(provide fragment molecule make-chain ring-molecule combine-fragments combine-into-fragment)
 
 ; molecule grammar:
 ;   molecule = (molecule name-id
@@ -90,7 +83,7 @@
                    (add-bond m (bond a1 a2 (bond-order b) (bond-stereo b)))))]
             ; Add the bond between fragments
             [m (add-bond m (bond 'bond-atom1 'bond-atom2 order #f))])
-       (list m '()))])
+       m)])
 
 (define-syntax-parser molecule
   [(_ name:id
@@ -219,6 +212,48 @@
                    (bonds #,@bond-specs)
                    #:exposed #,(list-ref ring-atoms 2)))])
 
+(define-syntax-parser combine-into-fragment
+  [(_ name:id
+      [frag1:id #:at atom1:id]
+      [frag2:id #:at atom2:id]
+      #:bt [bond-atom1:id bond-atom2:id order:number]
+      #:exposed exposed-atom:id)
+   #'(let* ([f1 frag1]
+            [f2 frag2]
+            [m1 (first f1)]
+            [m2 (first f2)]
+            [exposed1 (second f1)]
+            [exposed2 (second f2)]
+            [m (mol (make-immutable-hash) empty)]
+            ; Copy all atoms from first fragment
+            [m (for/fold ([m m])
+                         ([atom (hash->list (mol-atoms m1))])
+                 (set-atom m (car atom) (cdr atom)))]
+            ; Generate new atom IDs for second fragment to avoid collisions
+            [atom-map (make-hash)]
+            [m (for/fold ([m m])
+                         ([atom (hash->list (mol-atoms m2))])
+                 (let* ([orig-id (car atom)]
+                        [atom-value (cdr atom)]
+                        [new-id (if (eq? orig-id 'atom2)
+                                    'bond-atom2
+                                    (string->symbol (format "~a_~a" (symbol->string orig-id) (symbol->string 'frag2))))])
+                   (hash-set! atom-map orig-id new-id)
+                   (set-atom m new-id atom-value)))]
+            ; Copy all bonds from first fragment
+            [m (for/fold ([m m])
+                         ([b (mol-bonds m1)])
+                 (add-bond m b))]
+            ; Add bonds from second fragment with renamed atoms
+            [m (for/fold ([m m])
+                         ([b (mol-bonds m2)])
+                 (let ([a1 (hash-ref atom-map (bond-a1 b))]
+                       [a2 (hash-ref atom-map (bond-a2 b))])
+                   (add-bond m (bond a1 a2 (bond-order b) (bond-stereo b)))))]
+            ; Add the bond between fragments
+            [m (add-bond m (bond 'bond-atom1 'bond-atom2 order #f))])
+       (list m (list 'exposed-atom)))])
+
 (module+ test
   (require rackunit)
   
@@ -300,6 +335,7 @@
   (check-equal? (hash-count (mol-atoms acetic-acid-combined)) 8)
   (check-equal? (length (mol-bonds acetic-acid-combined)) 7)
   
+  ; FIXME: this is broken, uncomment these tests etc
   ; Test the ring-molecule helper
   ; (define benzene-ring
   ;   (ring-molecule benzene-ring 6 C))
@@ -331,6 +367,4 @@
   ; ; Check that erythronolide has the right structure
   ; (check-true (> (hash-count (mol-atoms frag-erythronolide)) 20))
   ; (check-true (> (length (mol-bonds frag-erythronolide)) 20))
-  
-  (check-true #t)
-)
+  )

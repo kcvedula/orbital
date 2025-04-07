@@ -1,9 +1,9 @@
 #lang racket
 
-(require "private/core.rkt"
-         "private/core-render.rkt"
-         "private/explore.rkt"
-         "private/molecular-helpers.rkt")
+(require "../private/core.rkt"
+         "../private/core-render.rkt"
+         "../private/explore.rkt"
+         "../private/molecular-helpers.rkt")
 
 ; Define a simple benzene molecule
 (define benzene (make-ring-molecule 'benzene 6))
@@ -79,7 +79,10 @@
          
          ; Add all carbon atoms
          [m (for/fold ([m m])
-                     ([atom-id (append ring-a-atoms ring-b-atoms ring-c-atoms ring-d-atoms)])
+                     ([atom-id (append ring-a-atoms 
+                                      (list 'B1 'B2 'B3 'B4) 
+                                      (list 'C1 'C2 'C3 'C4) 
+                                      ring-d-atoms)])
               (set-atom m atom-id (atom 'C #f #f #f)))]
          
          ; Add bonds for each ring
@@ -95,23 +98,21 @@
          [m (add-bond m (bond 'B1 'B2 1 #f))]
          [m (add-bond m (bond 'B2 'B3 1 #f))]
          [m (add-bond m (bond 'B3 'B4 1 #f))]
-         [m (add-bond m (bond 'B4 'B5 1 #f))]
-         [m (add-bond m (bond 'B5 'A5 1 #f))]
+         [m (add-bond m (bond 'B4 'A5 1 #f))]
          
-         ; Ring C bonds - sharing B4 and B5 atoms with ring B
+         ; Ring C bonds - sharing B4 and A5 atoms with ring B
          [m (add-bond m (bond 'C1 'B4 1 #f))]
          [m (add-bond m (bond 'C1 'C2 1 #f))]
          [m (add-bond m (bond 'C2 'C3 1 #f))]
          [m (add-bond m (bond 'C3 'C4 1 #f))]
-         [m (add-bond m (bond 'C4 'C5 1 #f))]
-         [m (add-bond m (bond 'C5 'B5 1 #f))]
+         [m (add-bond m (bond 'C4 'A5 1 #f))]
          
-         ; Ring D bonds - sharing C4 and C5 atoms with ring C (5-membered)
+         ; Ring D bonds - sharing C4 and A5 atoms with ring C (5-membered)
          [m (add-bond m (bond 'D1 'C4 1 #f))]
          [m (add-bond m (bond 'D1 'D2 1 #f))]
          [m (add-bond m (bond 'D2 'D3 1 #f))]
          [m (add-bond m (bond 'D3 'D4 1 #f))]
-         [m (add-bond m (bond 'D4 'C5 1 #f))]
+         [m (add-bond m (bond 'D4 'A5 1 #f))]
          
          ; Add a hydroxyl group to D3 (characteristic of sterols)
          [m (set-atom m 'O1 (atom 'O #f #f #f))]
@@ -145,11 +146,9 @@
                  [FOV 60])
     (explore-mol molecule)))
 
-; Start the demo with the selected molecule
-; Change this number to explore different molecules:
 ; 0 - benzene
 ; 1 - ethanol
 ; 2 - erythronolide
 ; 3 - naphthalene (fused rings)
 ; 4 - steroid (complex 4-ring system)
-(demo 4) 
+(demo 2) 

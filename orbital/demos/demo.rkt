@@ -1,7 +1,7 @@
 #lang racket
 
-(require "private/core-render.rkt")
-(require "private/explore.rkt")
+(require "../private/core-render.rkt"
+         "../private/explore.rkt")
 
 
 (define pid (case 5
