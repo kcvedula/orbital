@@ -5,7 +5,7 @@
          syntax/parse
          syntax/parse/define)
 
-(provide fragment molecule make-chain ring-molecule)
+(provide fragment molecule make-chain ring-molecule combine-fragments)
 
 (define-syntax-parser atom-spec
   [(_ sym:id
@@ -139,9 +139,9 @@
       (~optional (~seq #:additional-bonds additional-bonds:expr) #:defaults ([additional-bonds #'null])))
    #'(let* ([ring-bonds (make-ring ring-size 'ring-atom-type)]
             [atom-bond-lists (build-molecule-components ring-bonds additional-atoms additional-bonds)])
-       (molecule name
-                 (atoms . ,(car atom-bond-lists))
-                 (bonds . ,(cadr atom-bond-lists))))])
+       #`(molecule #,name
+                   (atoms #,@(car atom-bond-lists))
+                   (bonds #,@(cadr atom-bond-lists))))])
 
 ; Predefined common molecular fragments
 (define methyl-group
@@ -198,10 +198,10 @@
                            (list (car b) (cdr b) 1))
                          additional-bonds
                          h-bonds)])
-       (fragment name
-                 (atoms . ,atom-specs)
-                 (bonds . ,bond-specs)
-                 #:exposed ,(list-ref ring-atoms 2)))])
+       #`(fragment #,name
+                   (atoms #,@atom-specs)
+                   (bonds #,@bond-specs)
+                   #:exposed #,(list-ref ring-atoms 2)))])
 
 (module+ test
   (require rackunit)

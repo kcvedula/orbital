@@ -5,6 +5,8 @@
          "private/explore.rkt"
          "private/syntax-layer.rkt")
 
+(provide fragment molecule make-chain ring-molecule combine-fragments)
+
 ; Define a simple benzene molecule using the syntax layer
 (define benzene 
   (molecule benzene
@@ -112,4 +114,5 @@
 ; 1 - ethanol (simple molecule with syntax layer)
 ; 2 - naphthalene (combined fragments)
 ; 3 - steroid (complex molecule with combined fragments)
-(demo 3) 
+(demo 2) 
+
