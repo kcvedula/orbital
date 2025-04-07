@@ -44,8 +44,8 @@
          [m (mol (make-immutable-hash) empty)]
          ; Add all carbon atoms
          [m (for/fold ([m m])
-                     ([atom (append ring1-atoms ring2-atoms)])
-              (set-atom m atom (atom 'C #f #f #f)))]
+                     ([atom-id (append ring1-atoms ring2-atoms)])
+              (set-atom m atom-id (atom 'C #f #f #f)))]
          ; Add first ring bonds
          [m (for/fold ([m m])
                      ([i (in-range (length ring1-atoms))])
@@ -79,8 +79,8 @@
          
          ; Add all carbon atoms
          [m (for/fold ([m m])
-                     ([atom (append ring-a-atoms ring-b-atoms ring-c-atoms ring-d-atoms)])
-              (set-atom m atom (atom 'C #f #f #f)))]
+                     ([atom-id (append ring-a-atoms ring-b-atoms ring-c-atoms ring-d-atoms)])
+              (set-atom m atom-id (atom 'C #f #f #f)))]
          
          ; Add bonds for each ring
          ; Ring A bonds
