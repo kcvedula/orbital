@@ -48,19 +48,21 @@ How to work with a sdf string
 5. make two lists with the subsequenent #atoms atoms and #bonds bonds
 |#
 
-(define (sdf->lines/header x)
+(define (sdf->lines/header x (num-drop 2))
   (let* ([x x]
-         [x (string-split x "\n")]
-         [x (drop x 2)])
-    x))
+         [x (string-split (string-trim x) "\n")]
+         [x (drop x num-drop)])
+         x))
 
 (define (parse-header h)
   (map string->number (take (string-split h) 2)))
+  
 
 (define (lines/header->raw-atoms&bonds x)
   (define amounts (parse-header (car x)))
   (define atoms (take (cdr x) (first amounts)))
   (define bonds (take (drop (cdr x) (first amounts)) (second amounts)))
+  
   (cons atoms bonds))
 
 ; structures to represent atoms and bonds for rendering
@@ -75,7 +77,7 @@ How to work with a sdf string
           (string->number (first important))
           (string->number (second important))
           (string->number (third important))))
-
+   
 (define (clean-raw-bond b)
   (define important (take (string-split b) 3))
   (bond3d (string->number (first important))
@@ -166,15 +168,26 @@ How to work with a sdf string
 (define (smiles->sdf s)
   (car (send-babel-smiles
         s
-        "-osdf --gen3d --fastest")))
+        "-osdf --gen3d --fast --noOptimize")))
 
 (define (smiles->pict3d s)
   (define raw (smiles->sdf s))
   (define clean (raw-sdf->clean-atoms&bonds raw))
   (freeze (atoms&bonds->pict3d clean)))
 
+(define (sdf->pict3d raw)
+  (define clean (raw-sdf->clean-atoms&bonds raw))
+  (freeze (atoms&bonds->pict3d clean)))
+
+(define (sdf-pc->pict3d raw)
+   (define clean (raw-sdf->clean-atoms&bonds-pc raw))
+  (freeze (atoms&bonds->pict3d clean)))
+
 (define (mol->pict3d m)
   (smiles->pict3d (mol->smiles m)))
+
+(define (explore-sdf s)
+  (explore (sdf->pict3d s)))
 
 (define (explore-mol m)
   (explore (mol->pict3d m)))
@@ -183,10 +196,10 @@ How to work with a sdf string
   (explore (smiles->pict3d s)))
 
 (define (explore-pid pid)
-  (explore-smiles (pid->smiles pid)))
+  (explore (sdf-pc->pict3d (pid->sdf pid))))
 
 (define (pid->pict3d pid)
-  (smiles->pict3d (pid->smiles pid)))
+  (sdf->pict3d (pid->sdf pid)))
 
 (define (pid->smiles pid)
   (define PT-URL
@@ -203,3 +216,45 @@ How to work with a sdf string
   (define res (port->string in))
   (http-conn-close! conn-to-pubchem)
   (string-trim res))
+
+(require json)
+
+(define (get-conformer pid)
+  (define PT-URL
+    (string->url
+     (string-append
+     "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+(number->string pid) "/conformers/JSON")))
+
+  (define conn-to-pubchem (http-conn-open (url-host PT-URL) #:ssl? #t))
+
+  (match-define-values (a b in) (http-conn-sendrecv! conn-to-pubchem  (url->string PT-URL))) ; input is a gzip
+
+  (define res (read-json in))
+  (http-conn-close! conn-to-pubchem)
+  (define info-dict (hash-ref res 'InformationList))
+  (define info-list (hash-ref info-dict 'Information))
+  (define the-info (first info-list))
+  (first (hash-ref the-info'ConformerID))
+  )
+
+(define (pid->sdf pid)
+ (define PT-URL
+    (string->url
+     (string-append
+     "https://pubchem.ncbi.nlm.nih.gov/rest/pug/conformers/"
+     (get-conformer pid) "/SDF?response_type=display")))
+
+  (define conn-to-pubchem (http-conn-open (url-host PT-URL) #:ssl? #t))
+
+  (match-define-values (a b in) (http-conn-sendrecv! conn-to-pubchem  (url->string PT-URL))) ; input is a gzip
+
+  (define s1 (port->string in))
+  (http-conn-close! conn-to-pubchem)
+  (string-trim s1))
+
+(define (raw-sdf->clean-atoms&bonds-pc x0)
+  (define x1 (sdf->lines/header x0 3))
+  (define x2 (lines/header->raw-atoms&bonds x1))
+  (clean-raw-atoms&bonds x2))
+
