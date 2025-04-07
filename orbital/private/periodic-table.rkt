@@ -7,7 +7,7 @@
 (require rackunit)
 
 (provide
- element ; struct to represent an element on the periodic table
+ (struct-out element) ; struct to represent an element on the periodic table
  dirty-elements ; pure json from pubchem, a list of elements
  clean-elements) ; cleaner racket data, a list of elements
 
