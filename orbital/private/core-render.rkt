@@ -199,7 +199,7 @@ How to work with a sdf string
   (explore (sdf-pc->pict3d (pid->sdf pid))))
 
 (define (pid->pict3d pid)
-  (sdf->pict3d (pid->sdf pid)))
+  (sdf-pc->pict3d (pid->sdf pid)))
 
 (define (pid->smiles pid)
   (define PT-URL
