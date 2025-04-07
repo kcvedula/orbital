@@ -1,5 +1,12 @@
 #lang racket
 
+(require pict3d
+         net/http-client
+         net/url
+         "core.rkt"
+         "periodic-table.rkt"
+         "explore.rkt")
+
 (provide
  explore-smiles
  explore-pid
@@ -7,13 +14,7 @@
  smiles->pict3d
  mol->pict3d
  pid->pict3d)
-         
-(require "core.rkt")
-(require "periodic-table.rkt")
-(require "explore.rkt")
-(require pict3d)
-(require net/http-client)
-(require net/url)
+
 #|
 obabel -:"CCO" -osdf --gen3d
 
@@ -48,10 +49,10 @@ How to work with a sdf string
 |#
 
 (define (sdf->lines/header x)
-  (let* ((x x)
-         (x (string-split x "\n"))
-         (x (drop x 2)))
-         x))
+  (let* ([x x]
+         [x (string-split x "\n")]
+         [x (drop x 2)])
+    x))
 
 (define (parse-header h)
   (map string->number (take (string-split h) 2)))
@@ -82,10 +83,11 @@ How to work with a sdf string
           (string->number (third important))))
 
 (define (clean-raw-atoms atoms [id 1])
-  (if (empty? atoms)
-      '()
-      (cons (clean-raw-atom (car atoms) id)
-            (clean-raw-atoms (cdr atoms) (add1 id)))))
+  (match atoms
+    ['() '()]
+    [(cons fst rst)
+     (cons (clean-raw-atom fst id)
+           (clean-raw-atoms rst (add1 id)))]))
 
 (define (clean-raw-atoms&bonds r)
   (define r-atoms (car r))
@@ -110,8 +112,6 @@ How to work with a sdf string
      clean-elements))
   (if (= (length res) 1) (car res) (error 'element/symbol "no match")))
 
-
-
 (define ATOMIC-RADIUS-SCALE (make-parameter .0025))
 
 (define (atom3d->pict3d a)
@@ -119,12 +119,12 @@ How to work with a sdf string
   (define elem (element/symbol elem-sym))
   (define rad (* (ATOMIC-RADIUS-SCALE)
                  (element-atomic-radius elem)))
-  (combine 
+  (combine
    (with-color
-      (rgba (if (element-cpk-color elem)
-                (element-cpk-color elem)
-                (rgba "black")))
-    (sphere (pos x y z) rad))
+       (rgba (if (element-cpk-color elem)
+                 (element-cpk-color elem)
+                 (rgba "black")))
+     (sphere (pos x y z) rad))
    (basis id (move (dir x y z)))))
 
 (define (atoms3d->pict3d as)
@@ -138,15 +138,15 @@ How to work with a sdf string
   (define cyl (move-z (cylinder origin (dir rad rad l/2)) l/2))
   (define d (* rad 1.5)) ; bigger than radius
   (transform
-   (cond [(equal? order 1) cyl]
-        [(equal? order 2) (combine (move-x cyl d)
-                                   (move-x cyl (- d)))]
-        [(equal? order 3) (combine (move-x cyl d)
-                                   cyl
-                                   (move-x cyl (- d)))]
-        [else (error "higher order bonds not supported: " order)])
+   (case order
+     [(1) cyl]
+     [(2) (combine (move-x cyl d)
+                   (move-x cyl (- d)))]
+     [(3) (combine (move-x cyl d)
+                   cyl
+                   (move-x cyl (- d)))]
+     [else (error "higher order bonds not supported: " order)])
    (point-at p1 p2)))
-   
 
 (define (add-bond p b)
   (match-define (bond3d a1 a2 order) b) ; TODO handle order correctly
@@ -192,13 +192,14 @@ How to work with a sdf string
   (define PT-URL
     (string->url
      (string-append
-     "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/" (number->string pid)  "/property/CanonicalSMILES/TXT")))
+      "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+      (number->string pid)
+      "/property/CanonicalSMILES/TXT")))
 
   (define conn-to-pubchem (http-conn-open (url-host PT-URL) #:ssl? #t))
 
-  (match-define-values (a b in) (http-conn-sendrecv! conn-to-pubchem  (url->string PT-URL))) ; input is a gzip
+  (match-define-values (a b in) (http-conn-sendrecv! conn-to-pubchem (url->string PT-URL))) ; input is a gzip
 
   (define res (port->string in))
   (http-conn-close! conn-to-pubchem)
   (string-trim res))
-

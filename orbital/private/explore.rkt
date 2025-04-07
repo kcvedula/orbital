@@ -9,7 +9,6 @@
          DELTA-LOOK
          DELTA-MOVE)
 
-
 (define FPS
   (ann
    (make-parameter (ann 144 Positive-Integer))
