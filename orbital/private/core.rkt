@@ -31,7 +31,7 @@ The second portion of the core is defining our molecules, atoms, and bonds and c
   (unless (sys-entry) (error 'sys-entry "not initialized"))
   (match-define
      (list out in pid err proc)
-    (process (string-append "wsl" sp s)))
+    (process (string-append (sys-entry) sp s)))
   (proc 'wait)
   (define res
     (list
