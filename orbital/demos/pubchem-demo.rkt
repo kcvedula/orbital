@@ -10,8 +10,7 @@
               [(2) 3664]
               [(3) 45138674]
               [(4) 5997] ;; Cholesterol
-              [(5) 5957] ;; Adenosine Triphosphate (ATP)
-              ))
+              [(5) 5957])) ;; Adenosine Triphosphate (ATP)
 
 (parameterize ([FPS 60]
                [DELTA-LOOK (degrees->radians 0.75)]

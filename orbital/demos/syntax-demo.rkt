@@ -29,7 +29,6 @@
             (bonds [C7 C8 1] [C8 C9 1] [C9 C10 1])
             #:exposed C7))
 
-; Combine fragments to create naphthalene
 (define naphthalene 
   (combine-fragments naphthalene
                     [naphthalene-fragment1 #:at C1]
@@ -39,23 +38,15 @@
 (define steroid-core-d3
   (fragment steroid-core-d3
             (atoms 
-             ; Ring A
-             [A1 C] [A2 C] [A3 C] [A4 C] [A5 C] [A6 C]
-             ; Ring B 
-             [B1 C] [B2 C] [B3 C] [B4 C] [B5 C]
-             ; Ring C
-             [C1 C] [C2 C] [C3 C] [C4 C] [C5 C]
-             ; Ring D
-             [D1 C] [D2 C] [D3 C] [D4 C] [D5 C])
+             [A1 C] [A2 C] [A3 C] [A4 C] [A5 C] [A6 C] ; Ring A
+             [B1 C] [B2 C] [B3 C] [B4 C] [B5 C]        ; Ring B 
+             [C1 C] [C2 C] [C3 C] [C4 C] [C5 C]        ; Ring C
+             [D1 C] [D2 C] [D3 C] [D4 C] [D5 C])       ; Ring D
             (bonds
-             ; Ring A bonds
-             [A1 A2 1] [A2 A3 1] [A3 A4 1] [A4 A5 1] [A5 A6 1] [A6 A1 1]
-             ; Ring B bonds - sharing A4 and A5
-             [B1 A4 1] [B1 B2 1] [B2 B3 1] [B3 B4 1] [B4 B5 1] [B5 A5 1]
-             ; Ring C bonds - sharing B4 and B5
-             [C1 B4 1] [C1 C2 1] [C2 C3 1] [C3 C4 1] [C4 C5 1] [C5 B5 1]
-             ; Ring D bonds - sharing C4 and C5
-             [D1 C4 1] [D1 D2 1] [D2 D3 1] [D3 D4 1] [D4 D5 1] [D5 C5 1])
+             [A1 A2 1] [A2 A3 1] [A3 A4 1] [A4 A5 1] [A5 A6 1] [A6 A1 1] ; Ring A bonds
+             [B1 A4 1] [B1 B2 1] [B2 B3 1] [B3 B4 1] [B4 B5 1] [B5 A5 1] ; Ring B bonds: sharing A4 A5
+             [C1 B4 1] [C1 C2 1] [C2 C3 1] [C3 C4 1] [C4 C5 1] [C5 B5 1] ; Ring C bonds: sharing B4 B5
+             [D1 C4 1] [D1 D2 1] [D2 D3 1] [D3 D4 1] [D4 D5 1] [D5 C5 1]); Ring D bonds: sharing C4 C5
             #:exposed D3))
 
 (define hydroxyl
@@ -83,22 +74,19 @@
                      [alkyl-chain #:at S1]
                      #:bt [D4 S1 1]))
 
-; Function to explore any defined molecule
 (define (demo molecule-id)
   (define molecule 
     (case molecule-id
       [(0) benzene]
       [(1) ethanol]
       [(2) naphthalene]
-      [(3) steroid]
-      [else benzene]))
+      [(3) steroid]))
   
   (parameterize ([FPS 60]
                  [DELTA-LOOK (degrees->radians 0.75)]
                  [DELTA-MOVE 1/8]
                  [FOV 60])
     (explore-mol molecule)))
-
 
 ; 0 - benzene (simple ring)
 ; 1 - ethanol (simple molecule with syntax layer)
