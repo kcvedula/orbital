@@ -7,6 +7,15 @@
 
 (provide fragment molecule make-chain ring-molecule combine-fragments)
 
+; molecule grammar:
+;   molecule = (molecule name-id
+;                (atoms [atom-id atom-type-id atom-option ...] ...)
+;                (bonds [atom1-id atom2-id order-num bond-option ...] ...))
+;   atom-option = #:mass number
+;               | #:chirality chirality-id
+;               | #:charge number
+;   bond-option = #:stereo stereo-id
+
 (define-syntax-parser atom-spec
   [(_ sym:id
       (~optional (~seq #:mass mass:number) #:defaults ([mass #'#f]))
