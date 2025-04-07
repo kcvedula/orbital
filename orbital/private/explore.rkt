@@ -7,7 +7,9 @@
 (provide explore
          FPS
          DELTA-LOOK
-         DELTA-MOVE)
+         DELTA-MOVE
+         FOV
+         WS)
 
 (define FPS
   (ann
@@ -19,9 +21,12 @@
    (make-parameter (ann (degrees->radians .5) Real))
    (Parameterof Real)))
 
-
 (define DELTA-MOVE
   (ann (make-parameter (/ 20 (FPS)))
+       (Parameterof Positive-Real)))
+
+(define FOV
+  (ann (make-parameter 60)
        (Parameterof Positive-Real)))
 
 (define MOVE-KEYSET (set "w" "a" "s" "d" "shift" " "))
@@ -37,18 +42,19 @@
 (: explore (-> Pict3D WS))
 ;; Launches a 3D big bang instance
 (define (explore pict)
-  (big-bang3d (init-ws pict)
-              #:on-draw on-draw
-              #:on-key on-key
-              #:on-release on-release
-              #:frame-delay (ann (ceiling (/ 1000 (FPS))) Positive-Integer)
-              #:on-frame on-frame
-              #:name "Orbital"))
+  (parameterize [(current-pict3d-fov (FOV))]
+    (big-bang3d (init-ws pict)
+                #:on-draw on-draw
+                #:on-key on-key
+                #:on-release on-release
+                #:frame-delay (ann (ceiling (/ 1000 (FPS))) Positive-Integer)
+                #:on-frame on-frame
+                #:name "Orbital")))
 
 (: init-ws (-> Pict3D WS))
 (define (init-ws pict)
-  (let ((INIT-POS (pos 0 -10 0))
-        (INIT-KEYSET : (Setof String) (set)))
+  (let ([INIT-POS (pos 0 -10 0)]
+        [INIT-KEYSET : (Setof String) (set)])
     (ws pict INIT-POS identity-linear INIT-KEYSET)))
 
 (: on-frame (-> WS Natural Flonum WS))
@@ -77,6 +83,7 @@
 (define (on-key state n t k)
   (match-define (ws ws.scene ws.pos ws.view ws.keys) state)
   (cond
+    [(equal? k "escape") (init-ws ws.scene)]
     [(set-member? (set-union MOVE-KEYSET LOOK-KEYSET) k)
      (ws ws.scene ws.pos ws.view (set-add ws.keys k))]
     [else state]))
@@ -111,5 +118,3 @@
     ("left"  (look-right (- (DELTA-LOOK)) lt))
     ("down"  (look-up (- (DELTA-LOOK)) lt))
     (_       (error `look-key->view "bad look key"))))
-
-(current-pict3d-fov 60)

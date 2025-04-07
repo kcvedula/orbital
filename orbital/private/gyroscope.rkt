@@ -27,7 +27,8 @@
   (define R2 (dir-cross F2 U))
   (linear R2 F2 U))
 
-#;((look-right identity-linear) (/ pi 6))
+(module+ test
+  (look-right (/ pi 6) identity-linear))
 
 (: look-up (-> Real Linear Linear))
 (define (look-up theta lt)
@@ -38,7 +39,8 @@
   (define U2 (dir-cross R F2))
   (linear R F2 U2))
 
-#;((look-up identity-linear) (/ pi 6))
+(module+ test
+  (look-up (/ pi 6) identity-linear))
 
 (: roll-right (-> Real Linear Linear))
 (define (roll-right theta lt)
@@ -49,4 +51,5 @@
   (define U2 (dir-cross R2 F))
   (linear R2 F U2))
 
-#;((roll-right identity-linear) (/ pi 6))
+(module+ test
+  (roll-right (/ pi 6) identity-linear))

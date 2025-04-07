@@ -3,17 +3,17 @@
 (require pict3d
          typed/net/http-client
          typed/net/url
+         typed/json
          "core.rkt"
          "periodic-table.rkt"
          "explore.rkt")
 
-(provide
- explore-smiles
- explore-pid
- explore-mol
- smiles->pict3d
- mol->pict3d
- pid->pict3d)
+(provide explore-smiles
+         explore-pid
+         explore-mol
+         smiles->pict3d
+         mol->pict3d
+         pid->pict3d)
 
 #|
 obabel -:"CCO" -osdf --gen3d
@@ -113,8 +113,6 @@ How to work with a sdf string
   (define x2 (lines/header->raw-atoms&bonds x1))
   (clean-raw-atoms&bonds x2))
 
-;(raw-sdf->clean-atoms&bonds ex-data)
-
 ; rendering
 
 (define (element/symbol s)
@@ -205,6 +203,7 @@ How to work with a sdf string
 (define (explore-smiles s)
   (explore (smiles->pict3d s)))
 
+(: explore-pid (-> Number WS))
 (define (explore-pid pid)
   (explore (sdf-pc->pict3d (pid->sdf pid))))
 
@@ -226,8 +225,6 @@ How to work with a sdf string
   (define res (port->string in))
   (http-conn-close! conn-to-pubchem)
   (string-trim res))
-
-(require json)
 
 (define (get-conformer pid)
   (define PT-URL
@@ -256,7 +253,7 @@ How to work with a sdf string
 
   (define conn-to-pubchem (http-conn-open (url-host PT-URL) #:ssl? #t))
 
-  (match-define-values (a b in) (http-conn-sendrecv! conn-to-pubchem  (url->string PT-URL))) ; input is a gzip
+  (match-define-values (a b in) (http-conn-sendrecv! conn-to-pubchem (url->string PT-URL))) ; input is a gzip
 
   (define s1 (port->string in))
   (http-conn-close! conn-to-pubchem)
