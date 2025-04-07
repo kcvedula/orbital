@@ -1,10 +1,10 @@
 #lang racket
-(require net/http-client)
-(require net/url)
-(require json)
-(require file/sha1)
-(require racket/draw)
-(require rackunit)
+(require net/http-client
+         net/url
+         json
+         file/sha1
+         racket/draw
+         rackunit)
 
 (provide
  (struct-out element) ; struct to represent an element on the periodic table

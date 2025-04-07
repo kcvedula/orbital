@@ -1,8 +1,8 @@
-#lang racket
+#lang typed/racket/no-check
 
 (require pict3d
-         net/http-client
-         net/url
+         typed/net/http-client
+         typed/net/url
          "core.rkt"
          "periodic-table.rkt"
          "explore.rkt")
@@ -52,32 +52,42 @@ How to work with a sdf string
   (let* ([x x]
          [x (string-split (string-trim x) "\n")]
          [x (drop x num-drop)])
-         x))
+    x))
 
 (define (parse-header h)
   (map string->number (take (string-split h) 2)))
-  
 
 (define (lines/header->raw-atoms&bonds x)
   (define amounts (parse-header (car x)))
   (define atoms (take (cdr x) (first amounts)))
   (define bonds (take (drop (cdr x) (first amounts)) (second amounts)))
-  
+
   (cons atoms bonds))
 
-; structures to represent atoms and bonds for rendering
-(struct atom3d (id element x y z) #:transparent)
+;; A structure to represent an atom for rendering where:
+;; - `id` is a unique number representing this atom
+;; - `element` is the atomic element of the atom
+;; - `x`, `y`, and `z` are the coordinates in space where the atom should be rendered
+(struct atom3d [(id : Number)
+                (element : Symbol)
+                (x : Number)
+                (y : Number)
+                (z : Number)]
+  #:transparent)
 
-(struct bond3d (a1 a2 order) #:transparent)
+;; A structure to represent a bond for rendering where:
+;; - `a1` and `a2` correspond to the id of the first and second atom in the bond respectively
+;; - `order` is the order of the bond (1, 2, or 3 supported)
+(struct bond3d [(a1 : Number) (a2 : Number) (order : Number)] #:transparent)
 
-(define (clean-raw-atom a id)
+(define (clean-raw-atom (a : String) (id : Number))
   (define important (take (string-split a) 4))
   (atom3d id
           (string->symbol (fourth important))
           (string->number (first important))
           (string->number (second important))
           (string->number (third important))))
-   
+
 (define (clean-raw-bond b)
   (define important (take (string-split b) 3))
   (bond3d (string->number (first important))
@@ -180,7 +190,7 @@ How to work with a sdf string
   (freeze (atoms&bonds->pict3d clean)))
 
 (define (sdf-pc->pict3d raw)
-   (define clean (raw-sdf->clean-atoms&bonds-pc raw))
+  (define clean (raw-sdf->clean-atoms&bonds-pc raw))
   (freeze (atoms&bonds->pict3d clean)))
 
 (define (mol->pict3d m)
@@ -223,8 +233,8 @@ How to work with a sdf string
   (define PT-URL
     (string->url
      (string-append
-     "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
-(number->string pid) "/conformers/JSON")))
+      "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+      (number->string pid) "/conformers/JSON")))
 
   (define conn-to-pubchem (http-conn-open (url-host PT-URL) #:ssl? #t))
 
@@ -235,15 +245,14 @@ How to work with a sdf string
   (define info-dict (hash-ref res 'InformationList))
   (define info-list (hash-ref info-dict 'Information))
   (define the-info (first info-list))
-  (first (hash-ref the-info'ConformerID))
-  )
+  (first (hash-ref the-info'ConformerID)))
 
 (define (pid->sdf pid)
- (define PT-URL
+  (define PT-URL
     (string->url
      (string-append
-     "https://pubchem.ncbi.nlm.nih.gov/rest/pug/conformers/"
-     (get-conformer pid) "/SDF?response_type=display")))
+      "https://pubchem.ncbi.nlm.nih.gov/rest/pug/conformers/"
+      (get-conformer pid) "/SDF?response_type=display")))
 
   (define conn-to-pubchem (http-conn-open (url-host PT-URL) #:ssl? #t))
 
@@ -257,4 +266,3 @@ How to work with a sdf string
   (define x1 (sdf->lines/header x0 3))
   (define x2 (lines/header->raw-atoms&bonds x1))
   (clean-raw-atoms&bonds x2))
-

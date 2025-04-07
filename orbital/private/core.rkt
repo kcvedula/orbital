@@ -106,7 +106,6 @@ formalCharge="0"
 />
 |#
 
-; (-> string? any? string?)
 ; <field>="<v>"
 (: compile-field (-> String Any String))
 (define (compile-field f v)
@@ -236,4 +235,3 @@ compiling the bond in a cis-alkene with two fluorine and two hydrogens,
   (define res (send-system cmd))
   (define out (car res))
   (first (string-split out "\t")))
-

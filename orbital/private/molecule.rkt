@@ -14,8 +14,7 @@
   (close-input-port out)
   (close-output-port in)
   (close-input-port err)
-  res
-  )
+  res)
 
 (define (obabel/smiles input-smiles input-other)
   (string-trim (obabel (string-append "-:" "\"" input-smiles "\"" " " input-other))))
@@ -31,18 +30,4 @@
   (if (equal? res "")
       (error 'smiles->canonical-smiles "expected valid smiles")
       res))
-
-(obabel-command "wsl obabel")
-
-
-
-  
-  
-
-
-
-
-
-
-
 
