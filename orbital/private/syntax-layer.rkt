@@ -58,6 +58,7 @@
   [(_ name:id
       (atoms [a-sym:id a-type:id . a-rest:expr] ...)
       (bonds [b-id1:id b-id2:id b-order:number . b-rest:expr] ...))
+   ; TODO: factor out
    #'(let* ([m (mol (make-immutable-hash) empty)]
             [m (for/fold ([m m])
                          ([a-stx (list (atom-spec a-type . a-rest) ...)]
@@ -99,12 +100,13 @@
                 (bond 'C1 'H3 1 #f)))
      '(C1)))
 
-;; TODO: use a dedicated struct as IL rather than list?
+;; TODO: use a dedicated struct as IR rather than list?
 (define-syntax-parser fragment
   [(_ name:id
       (atoms [a-sym:id a-type:id . a-rest:expr] ...)
       (bonds [b-id1:id b-id2:id b-order:number . b-rest:expr] ...)
       (~optional (~seq #:exposed exposed-atom:id) #:defaults ([exposed-atom #'#f])))
+   ; TODO: factor out
    #'(let* ([m (mol (make-immutable-hash) empty)]
             [m (for/fold ([m m])
                          ([a-stx (list (atom-spec a-type . a-rest) ...)]
@@ -125,7 +127,6 @@
                          (for/list ([i (in-range size)])
                            (cons (list-ref atom-ids i)
                                  (list-ref atom-ids (modulo (add1 i) size))))
-                         ; Return the atom IDs as well for reference
                          (list atom-ids))])
        bond-pairs)])
 
@@ -168,31 +169,31 @@
                    (bonds #,@(cadr atom-bond-lists))))])
 
 ; Predefined common molecular fragments
-(define methyl-group
+#;(define methyl-group
   (fragment methyl-group
             (atoms [C C] [H1 H] [H2 H] [H3 H])
             (bonds [C H1 1] [C H2 1] [C H3 1])
             #:exposed C))
 
-(define ethyl-group
+#;(define ethyl-group
   (fragment ethyl-group
             (atoms [C1 C] [C2 C] [H1 H] [H2 H] [H3 H] [H4 H] [H5 H])
             (bonds [C1 C2 1] [C1 H1 1] [C1 H2 1] [C1 H3 1] [C2 H4 1] [C2 H5 1])
             #:exposed C2))
 
-(define hydroxyl-group
+#;(define hydroxyl-group
   (fragment hydroxyl-group
             (atoms [O O] [H H])
             (bonds [O H 1])
             #:exposed O))
 
-(define carboxyl-group
+#;(define carboxyl-group
   (fragment carboxyl-group
             (atoms [C C] [O1 O] [O2 O] [H H])
             (bonds [C O1 2] [C O2 1] [O2 H 1])
             #:exposed C))
 
-(define amino-group
+#;(define amino-group
   (fragment amino-group
             (atoms [N N] [H1 H] [H2 H])
             (bonds [N H1 1] [N H2 1])

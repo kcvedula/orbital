@@ -1,10 +1,11 @@
 #lang racket
 
 (require "../private/core-render.rkt"
-         "../private/explore.rkt")
+         "../private/explore.rkt"
+         pict3d)
 
 
-(define pid (case 5
+(define pid (case 0
               [(0) 4000]
               [(1) 4001]
               [(2) 3664]
@@ -16,4 +17,4 @@
                [DELTA-LOOK (degrees->radians 0.75)]
                [DELTA-MOVE 1/8]
                [FOV 60])
-  (explore-pid pid))
+  (explore (scale (pid->pict3d pid) 3)))
