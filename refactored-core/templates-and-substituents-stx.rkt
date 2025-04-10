@@ -3,7 +3,7 @@
          "types.rkt"
          "periodic-table.rkt"
          "render2d.rkt" ; testing
-         "mol.rkt" ; testing
+         "mol-to-cml.rkt" ; testing
          "babel.rkt" ; testing
          racket/hash
          racket/struct

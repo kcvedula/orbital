@@ -2,9 +2,6 @@
 
 (provide
  (contract-out
-  (empty-mol mol?)
-  (set-atom (-> mol? positive-integer? atom? mol?))
-  (add-bond (-> mol? bond? mol?))
   (mol->cml (-> mol? cml?))))
 
 (require xml
@@ -14,18 +11,6 @@
           element-name
           element?
           element))
-
-(define empty-mol (mol (make-immutable-hash) empty))
-
-(define (set-atom m id a)
-  (match-define (mol atoms bonds) m)
-  (define atoms2 (hash-set atoms id a))
-  (mol atoms2 bonds))
-
-; doesn't check if a bond between two atoms already exists
-(define (add-bond m b)
-  (match-define (mol atoms bonds) m)
-  (mol atoms (cons b bonds)))
 
 (define (atom->xml id a)
   `(atom ((id ,(number->string id))
