@@ -2,9 +2,6 @@
 (require "templates-and-substituents.rkt"
          "types.rkt"
          "periodic-table.rkt"
-         "render2d.rkt" ; testing
-         "mol-to-cml.rkt" ; testing
-         "babel.rkt" ; testing
          racket/hash
          racket/struct
          syntax-spec-v3
@@ -18,13 +15,15 @@
           racket/struct
           rackunit
           "types.rkt"
-          "periodic-table.rkt")
-         )
+          "periodic-table.rkt"))
 
-; [Rendering, Only for Testing]
+(module+ testing
+  (require "render2d.rkt"
+           "mol-to-cml.rkt"
+           "babel.rkt")
 
-(define (mol->pict m)
-  (png->pict (babel (mol->cml m) png)))
+  (define (mol->pict m)
+    (png->pict (babel (mol->cml m) png))))
 
 ; [Static Check on Element Symbols]
 
@@ -51,15 +50,16 @@
 
 
 
+;; TODO: using binding class instead of racket-expr
 (syntax-spec
  (host-interface/expression
   (sketch-template #:atoms a:spec-atom ... #:bonds b:spec-bond ...)
-  #:binding (scope (import a) ...)
+  #:binding (scope (import a) ... b ...)
   #'(begin
       (compile-sketch-template->template
        #:atoms a ...
        #:bonds b ...)))
- 
+
  (nonterminal/exporting spec-atom
                         ; simple
                         id:racket-var
@@ -70,29 +70,28 @@
                          chirality:racket-expr
                          formal-charge:racket-expr)
                         #:binding (export id))
- 
+
  (nonterminal spec-bond
               ; simple
-              (a1:spec-atom a2:spec-atom)
-              #:binding (scope (import a1) (import a2))
+              (a1:racket-var a2:racket-var)
               ; complex
-              (a1:spec-atom
-               a2:spec-atom
+              (a1:racket-var
+               a2:racket-var
                order:racket-expr
-               stereo:racket-expr)
-              #:binding (scope (import a1) (import a2))))
+               stereo:racket-expr)))
 
-(define lazily-written-benzene
-  (sketch-template
-   #:atoms
-   C-1 C-2 C-3 C-4 C-5 C-6
-   #:bonds
-   (C-1 C-2 2 #f)
-   (C-2 C-3)
-   (C-3 C-4 2 #f)
-   (C-4 C-5)
-   (C-5 C-6 2 #f)
-   (C-6 C-1)))
+(module+ test
+  (define lazily-written-benzene
+    (sketch-template
+     #:atoms
+     C-1 C-2 C-3 C-4 C-5 C-6
+     #:bonds
+     (C-1 C-2 2 #f)
+     (C-2 C-3)
+     (C-3 C-4 2 #f)
+     (C-4 C-5)
+     (C-5 C-6 2 #f)
+     (C-6 C-1))))
 
 
 (define-syntax (compile-sketch-template->template stx)
@@ -159,20 +158,20 @@
      'compile-atom
      s
      stx))
-  
+
   (unless (identifier? stx) (yell "expected identifier"))
-  
-  (define l 
+
+  (define l
     (string-split
      (symbol->string
       (syntax-parse stx
         (x:id (syntax->datum stx))))
-      "-"))
-  
+     "-"))
+
   (unless (= (length l) 2)
     (yell (string-append "not a well formed atom-id."
-           "\nexpected <<valid-element-symbol-value?>-<positive-integer?>>"
-           "\na correct example would be Au-14")))
+                         "\nexpected <<valid-element-symbol-value?>-<positive-integer?>>"
+                         "\na correct example would be Au-14")))
   (match-define (list string-sym string-num) l)
   (define res-sym (string->symbol string-sym))
   (define res-aes (an-element-symbol res-sym))
@@ -180,5 +179,4 @@
   (define res-num (string->number string-num))
   (unless (positive-integer? res-num)
     (yell "expected a positive-integer? on the rhs"))
-  (cons res-sym res-num)
-  )
+  (cons res-sym res-num))
