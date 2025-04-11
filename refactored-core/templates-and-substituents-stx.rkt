@@ -7,34 +7,42 @@
          syntax-spec-v3
          syntax/parse
          (for-syntax
+          data/union-find
           syntax/parse
           syntax-spec-v3
           racket/string
           racket/match
           racket/math
+          racket/contract
           racket/struct
           rackunit
           "types.rkt"
           "periodic-table.rkt"))
 
-(module+ testing
-  (require "render2d.rkt"
-           "mol-to-cml.rkt"
-           "babel.rkt")
+;-------------------------------------------------------------------------------
+; Runtime Rendering for Testing during Development                             |
+;-------------------------------------------------------------------------------
+(require "render2d.rkt"
+         "mol-to-cml.rkt"
+         "babel.rkt")
 
-  (define (mol->pict m)
-    (png->pict (babel (mol->cml m) png))))
+(define (mol->pict m)
+  (png->pict (babel (mol->cml m) png)))
+   
 
-; [Static Check on Element Symbols]
+;-------------------------------------------------------------------------------
+; Procedures, Static Checks and Syntax for an-element-symbol                   |
+;-------------------------------------------------------------------------------
 
 (define-for-syntax (valid-aes? aes)
   (pair? (member aes (map element-symbol periodic-table))))
 
 (define-for-syntax (check-aes! aes ctxt)
+  (define help-msg "(map element-symbol periodic-table) for all acceptable values")
   (unless (valid-aes? aes)
     (raise-syntax-error
      'periodic-table
-     "invalid element-symbol"
+     (format "~v is not a known an-element-symbol\n~a" aes help-msg)
      ctxt)))
 
 (define-syntax (get-an-element-symbol stx)
@@ -48,17 +56,16 @@
   (pair? (member (an-element-symbol s)
                  (map element-symbol periodic-table))))
 
-
-
-;; TODO: using binding class instead of racket-expr
+; ------------------------------------------------------------------------------
+; Syntax Specification                                                         |
+; ------------------------------------------------------------------------------
 (syntax-spec
  (host-interface/expression
   (sketch-template #:atoms a:spec-atom ... #:bonds b:spec-bond ...)
   #:binding (scope (import a) ... b ...)
-  #'(begin
-      (compile-sketch-template->template
+  #'(compile-sketch-template->template
        #:atoms a ...
-       #:bonds b ...)))
+       #:bonds b ...))
 
  (nonterminal/exporting spec-atom
                         ; simple
@@ -79,95 +86,72 @@
                a2:racket-var
                order:racket-expr
                stereo:racket-expr)))
-
-(module+ test
-  (define lazily-written-benzene
-    (sketch-template
-     #:atoms
-     C-1 C-2 C-3 C-4 C-5 C-6
-     #:bonds
-     (C-1 C-2 2 #f)
-     (C-2 C-3)
-     (C-3 C-4 2 #f)
-     (C-4 C-5)
-     (C-5 C-6 2 #f)
-     (C-6 C-1))))
-
-
+;-------------------------------------------------------------------------------
+; Examples                                                                     |
+;-------------------------------------------------------------------------------
+(define x
+  (sketch-template
+   #:atoms
+   C-1 C-2 C-3 C-4 C-5 C-6 C-7 C-8
+   #:bonds
+   (C-1 C-2)
+   (C-2 C-3)
+   (C-3 C-4)
+   (C-4 C-5)
+   (C-5 C-6)
+   (C-6 C-1)
+   (C-1 C-7)
+   (C-7 C-8)
+   (C-8 C-4)
+   ))
+(mol->pict x)
+;-------------------------------------------------------------------------------
+#|
+Compiler Pathway
+1. check well-formedness of identifiers
+2. check well-formedness of complex atoms and bonds
+3. check that the graph of all atoms and bonds is connected
+4. compile to a template
+|#                                                                             
+;-------------------------------------------------------------------------------
 (define-syntax (compile-sketch-template->template stx)
   (syntax-parse stx
     ((_ #:atoms a ...
         #:bonds b ...)
-     #'(templates+ (compile-atoms a ...)
-                   (compile-bonds b ...)))))
-
-; necessary checks:
-; all element symbols in lhs of atom identifiers are valid
-; atom symbol follows the shape of <id-positive-integer>
-
-; bonds only refer to atoms that are already referenced
-; in #:atoms ...
-; (I think that syntax-specv3 gives that for free but i'm not
-; sure how to do that)
-
-; #:atoms a ... -> templates
-; #:bonds b ... -> list of bonds
-
-(define-syntax (compile-atoms stx)
+     (for-each check-simple-or-complex-atom-id! (syntax->list #'(a ...)))
+     (for-each check-simple-or-complex-bond-id! (syntax->list #'(b ...)))
+     (for-each check-atom! (syntax->list #'(a ...)))
+     (for-each check-bond! (syntax->list #'(b ...)))
+     (check-connected! (list (syntax->list #'(a ...))
+                             (syntax->list #'(b ...))))
+     #`(templates+ (list (compile-atom a) ...)
+                   (list (compile-bond b) ...)))))
+; ------------------------------------------------------------------------------
+; 1. Check well-formedness of identifiers                                      |
+; ------------------------------------------------------------------------------
+(define-for-syntax (check-simple-or-complex-bond-id! stx)
   (syntax-parse stx
-    ((_ a ...)
-     #'(list (compile-atom a) ...))))
+    ((a1 a2 _ _) (for-each check-simple-atom-id! (syntax->list #'(a1 a2))))
+    ((a1 a2) (for-each check-simple-atom-id! (syntax->list #'(a1 a2))))))
 
-(define-syntax (compile-bonds stx)
+(define-for-syntax (check-simple-or-complex-atom-id! stx)
   (syntax-parse stx
-    ((_ b ...)
-     #'(list (compile-bond b) ...))))
+    ((a:id _ _ _) (check-simple-atom-id! #'a))
+    (a (check-simple-atom-id! #'a))))
 
-
-(define-syntax (compile-atom stx)
-  (syntax-parse stx
-    ((_ a:id mass-number chirality formal-charge)
-     (match-define (cons aes num-id) (help-compile-atom-id #'a))
-     #`(an-element-symbol->template
-        (an-element-symbol '#,aes)
-        #:id #,num-id
-        #:mass-number mass-number
-        #:chirality chirality
-        #:formal-charge formal-charge)
-     )
-    ((_ a:id)
-     #'(compile-atom a #f #f #f))))
-
-(define-syntax (compile-bond stx)
-  (syntax-parse stx
-    ((_ (a1:id a2:id order stereo))
-     (match-define (cons _ num-id1) (help-compile-atom-id #'a1))
-     (match-define (cons _ num-id2)(help-compile-atom-id #'a2))
-     #`(bond #,num-id1 #,num-id2 order stereo))
-    ((_ (a1:id a2:id))
-     #'(compile-bond (a1 a2 1 #f)))))
-
-
-
-; an atom id is like C-1
-; that it follows <<valid-element-symbol-value?>-<positive-integer?>>
-; and is an identifier
-(define-for-syntax (help-compile-atom-id stx)
+(define-for-syntax (check-simple-atom-id! stx)
   (define (yell s)
     (raise-syntax-error
-     'compile-atom
+     'check-atom-id!
      s
      stx))
-
-  (unless (identifier? stx) (yell "expected identifier"))
-
+  (unless (identifier? stx) (yell "expected an identifier"))
   (define l
     (string-split
      (symbol->string
       (syntax-parse stx
         (x:id (syntax->datum stx))))
      "-"))
-
   (unless (= (length l) 2)
     (yell (string-append "not a well formed atom-id."
                          "\nexpected <<valid-element-symbol-value?>-<positive-integer?>>"
@@ -178,5 +162,106 @@
   (check-aes! res-aes stx)
   (define res-num (string->number string-num))
   (unless (positive-integer? res-num)
-    (yell "expected a positive-integer? on the rhs"))
+    (yell "expected a positive-integer? on the rhs")))
+
+; ------------------------------------------------------------------------------
+; 2. Checking well-formedness of atoms and bonds                               |
+; ------------------------------------------------------------------------------
+
+(define-for-syntax (check-atom! stx)
+  (syntax-parse stx
+    ((_ mass-number chirality formal-charge)
+     (enforce-contract positive-integer? #'mass-number 'check-atom-mass-number! "a positive-integer")
+     (enforce-contract (or/c 'R 'S) #'chirality 'check-atom-chirality! "'R, 'S,")
+     (enforce-contract integer? #'formal-charge 'check-atom-formal-charge! "an integer")
+     #'(void))
+    (_ #'(void))))
+
+(define-for-syntax (check-bond! stx)
+  (syntax-parse stx
+    ((_ _ order stereo)
+     (enforce-contract (or/c 1 2 3) #'order 'check-bond-order! "1, 2, 3,")
+     (enforce-contract (or/c 'E 'Z) #'stereo 'check-bond-stereo! "'E, 'Z,")
+     #'(void))
+    ((_ _) #'(void))))
+
+(define-for-syntax (host-expr->datum stx)
+  (cadr (syntax->datum stx)))
+
+(define-for-syntax (enforce-contract a-contract stx caller msg)
+  (unless ((or/c a-contract (or/c symbol? #f)) (host-expr->datum stx))
+    (raise-syntax-error 
+     caller
+     (string-append "expected: " msg " or #f")
+     stx)))
+; ------------------------------------------------------------------------------
+; 3. Checking the graph of atoms and bonds is connected                        |
+; ------------------------------------------------------------------------------
+(define-for-syntax (check-connected! l)
+  (match-define (list stx-vs stx-es) l)
+  (define vs (map compile-atom->vertex stx-vs))
+  (define es (map compile-bond->edge stx-es))
+  (unless (connected? vs es)
+    (raise-syntax-error
+     'check-connected!
+     "not connected through bonds to all other atoms"
+     (car stx-vs))))
+
+(define-for-syntax (connected? vs es)
+    (define forest (make-immutable-hash (map (λ (v) (cons v (uf-new v))) vs)))
+    (for-each (λ (e) (uf-union! (hash-ref forest (car e)) (hash-ref forest (cdr e)))) es)
+    (define sets (hash-values forest))
+    (andmap (λ (s) (uf-same-set? s (car sets))) (cdr sets)))
+
+(define-for-syntax (compile-atom->vertex stx)
+  (syntax-parse stx
+    (x:id (syntax->datum #'x))
+    ((x:id _ _ _) (syntax->datum #'x))))
+
+(define-for-syntax (compile-bond->edge stx)
+  (syntax-parse stx
+    ((x1:id x2:id) (cons (syntax->datum #'x1) (syntax->datum #'x2)))
+    ((x1:id x2:id _ _) (cons (syntax->datum #'x1) (syntax->datum #'x2)))))
+
+(module+ test
+  (begin-for-syntax
+    (check-true (connected? '(a b c d) '((a . b) (b . c) (c . d))))
+    (check-false (connected? '(a b c d) '((a . b) (b . c))))))
+; ------------------------------------------------------------------------------
+; 4. Compiling atoms and bonds to a runtime template                           |
+; ------------------------------------------------------------------------------
+(define-syntax (compile-atom stx)
+  (syntax-parse stx
+    ((_ (a:id mass-number chirality formal-charge))
+     (match-define (cons aes num-id) (help-compile-atom-id #'a))
+     #`(an-element-symbol->template
+        (an-element-symbol '#,aes)
+        #:id #,num-id
+        #:mass-number mass-number
+        #:chirality chirality
+        #:formal-charge formal-charge)
+     )
+    ((_ a:id)
+     #'(compile-atom (a #f #f #f)))))
+
+(define-syntax (compile-bond stx)
+  (syntax-parse stx
+    ((_ (a1:id a2:id order stereo))
+     (match-define (cons _ num-id1) (help-compile-atom-id #'a1))
+     (match-define (cons _ num-id2)(help-compile-atom-id #'a2))
+     #`(bond #,num-id1 #,num-id2 order stereo))
+    ((_ (a1:id a2:id))
+     #'(compile-bond (a1 a2 1 #f)))))
+
+(define-for-syntax (help-compile-atom-id stx)
+  (define l
+    (string-split
+     (symbol->string
+      (syntax-parse stx
+        (x:id (syntax->datum stx))))
+     "-"))
+  (match-define (list string-sym string-num) l)
+  (define res-sym (string->symbol string-sym))
+  (define res-aes (an-element-symbol res-sym))
+  (define res-num (string->number string-num))
   (cons res-sym res-num))

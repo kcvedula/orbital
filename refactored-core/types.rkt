@@ -41,7 +41,7 @@
  bond
  ((id1 positive-integer?)
   (id2 positive-integer?)
-  (order positive-integer?)
+  (order (or/c 1 2 3))
   (stereo (or/c #f 'E 'Z)))
  #:transparent)
 
