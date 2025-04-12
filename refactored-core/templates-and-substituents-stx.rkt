@@ -59,14 +59,36 @@
 ; ------------------------------------------------------------------------------
 ; Syntax Specification                                                         |
 ; ------------------------------------------------------------------------------
+
+(begin-for-syntax
+  (define-persistent-symbol-table st))
+
 (syntax-spec
  (host-interface/expression
-  (sketch-template #:atoms a:spec-atom ... #:bonds b:spec-bond ...)
+  (sketch-template
+    #:atoms a:spec-atom ...
+    #:bonds b:spec-bond ...)
   #:binding (scope (import a) ... b ...)
-  #'(compile-sketch-template->template
+    #'(compile-sketch-template->template
        #:atoms a ...
        #:bonds b ...))
 
+ (host-interface/definitions
+  (define-sketch-template
+    id:racket-var
+    #:atoms a:spec-atom ...
+    #:bonds b:spec-bond ...)
+  #:binding [(export id) (scope (import a) ... b ...)]
+  (begin
+    (symbol-table-set! st
+                       #'id
+                       #'(compile-sketch-template->template
+                        #:atoms a ...
+                        #:bonds b ...))
+    #'(begin (define id (compile-sketch-template->template
+       #:atoms a ...
+       #:bonds b ...)))))
+             
  (nonterminal/exporting spec-atom
                         ; simple
                         id:racket-var
@@ -89,22 +111,88 @@
 ;-------------------------------------------------------------------------------
 ; Examples                                                                     |
 ;-------------------------------------------------------------------------------
-(define x
-  (sketch-template
-   #:atoms
-   C-1 C-2 C-3 C-4 C-5 C-6 C-7 C-8
-   #:bonds
-   (C-1 C-2)
-   (C-2 C-3)
-   (C-3 C-4)
-   (C-4 C-5)
-   (C-5 C-6)
-   (C-6 C-1)
-   (C-1 C-7)
-   (C-7 C-8)
-   (C-8 C-4)
-   ))
-(mol->pict x)
+
+(define-sketch-template ex-1
+  #:atoms
+  C-1 C-2 C-3 C-4 C-5 C-6 C-7 C-8 
+  #:bonds
+  (C-1 C-2 1 #f)
+  (C-2 C-3)
+  (C-3 C-4)
+  (C-4 C-5)
+  (C-5 C-6)
+  (C-6 C-1)
+  (C-1 C-7)
+  (C-7 C-8)
+  (C-8 C-4)
+  )
+
+(define-syntax (foo id)
+  (syntax-parse id
+    ((_ id) (print (symbol-table-has-key? st #'id))))
+#'(void))
+
+#;(foo ex-1) ; ERROR HERE
+
+
+
+; we want to replicate this behavior with:
+
+#;(define ex-2.2
+  (extend-template
+   ex-1
+   #:atoms C-9
+   #:bonds (C-1 C-9)))
+; maybe by doing define-template and define-template/extend
+
+#;(begin
+   (define cycle-ex-1 (sketch-template
+                       #:atoms C-1 C-2 C-3 C-4 C-5
+                       #:bonds
+                       (C-1 C-2)
+                       (C-2 C-3)
+                       (C-3 C-4)
+                       (C-4 C-5)
+                       (C-5 C-1)))
+   ; expands to
+   (template+
+    (list 
+    (an-element-symbol->template (get-an-element-symbol C) #:id 1)
+    (an-element-symbol->template (get-an-element-symbol C) #:id 2)
+    (an-element-symbol->template (get-an-element-symbol C) #:id 3)
+    (an-element-symbol->template (get-an-element-symbol C) #:id 4)
+    (an-element-symbol->template (get-an-element-symbol C) #:id 5))
+    (list
+     (bond 1 2)
+     (bond 2 3)
+     (bond 3 4)
+     (bond 4 5)
+     (bond 5 1)))
+   (define cycle-ex-2 (ring 5)) ; should we just implement this right into runtime functions?
+   (define template-extension-ex-1
+     (extend-template
+      cycle-ex-1
+      #:atoms (C-6 #f #f #f)
+      #:bonds (C-1 C-6) (C-4 C-6))) ; this shouldn't use the same compile time checks as sketch template,
+   ; but it should compile similarly,
+   ; should expand to
+   (template+
+    (list
+     cycle-ex-1
+     (an-element-symbol->template (get-an-element-symbol C) #:id 6))
+    (list (bond 1 6))
+    (list (bond 4 6)))
+    )
+
+;-------------------------------------------------------------------------------
+; Template Extension
+;-------------------------------------------------------------------------------
+(define-syntax (extend-template stx)
+  (syntax-parse stx
+    ((_ (_ #:atoms a1 ... #:bonds b1 ...) #:atoms a2 ... #:bonds b2 ...)
+     #'(sketch-template
+        #:atoms a1 ... a2 ...
+        #:bonds b1 ... b2 ...))))
 ;-------------------------------------------------------------------------------
 #|
 Compiler Pathway

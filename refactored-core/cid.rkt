@@ -10,8 +10,6 @@
          "https-get.rkt"
          json)
 
-
-
 (define (smiles->cid s)
   (match-define (https-get-resp _ _ raw)
     (https-get
