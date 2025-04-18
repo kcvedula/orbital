@@ -1,0 +1,36 @@
+1. syntax for carbon templates and cyclic pi systems, as well as syntax for
+modifying existing templates. keep this in templates-and-substituents-stx.rkt or
+templates-and-substituents.rkt
+
+2. fill a file called mol-builder which requires everything from templates and
+substituents files and also defines constants. Fill it with real examples of
+curated molecules showing off different functional groups. 
+
+3. start testing the runtime layer and syntax layer ONLY, forget about any tests
+for rendering, babel, and pubchem until the very end. 
+
+4. start a racket package, clean up git, rename files, etc, make a main, and
+start documentation.
+
+5. README.md
+
+- [ ] orbital/private/core-render.rkt 
+- [ ] orbital/private/core.rkt 
+- [X] orbital/private/explore.rkt -> explore.rkt
+- [X] orbital/private/gyroscope.rkt -> merged with explore.rkt
+- [ ] orbital/private/molecule.rkt >>->>->  
+- [ ] orbital/private/periodic-table.rkt  
+- [-] orbital/private/smiles-parser.rkt {not needed}
+- [ ] orbital/private/syntax-layer.rkt 
+
+
+3d rendering from all different types
+- template -> hydroginate (make sure there are hydrogens)
+- 
+
+Benefits:
+- deal with obabel
+- create pict3d
+- extensible (use mol or template)
+
+
