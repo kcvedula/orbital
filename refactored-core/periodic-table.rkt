@@ -65,7 +65,7 @@
    (hash-ref (hash-ref extracted-json 'Table) 'Row)))
 
 (define (color-mapper hex)
-  (let ((maybe-three-bytes (bytes->list (hex-string->bytes hex))))
+  (let ([maybe-three-bytes (bytes->list (hex-string->bytes hex))])
     (if (and (list? maybe-three-bytes) (= (length maybe-three-bytes) 3))
         (apply make-object color% maybe-three-bytes)
         #f)))
@@ -76,9 +76,8 @@
   (check-equal? (electron-configuration-mapper "[He] 2s2 2p1") '(He (2 s 2) (2 p 1))))
 
 (define (electron-configuration-mapper ec)
-  (let* ((ec (string-split ec))
-
-         (ec (foldr
+  (let* ([ec (string-split ec)]
+         [ec (foldr
               (λ (x acc)
                 (if (equal? (substring x 0 1) "[")
                     ;     012
@@ -87,8 +86,8 @@
                     (list* (substring x 1 3) (substring x 4) acc)
                     (list* x acc)))
               '()
-              ec))
-         (ec (filter-map
+              ec)]
+         [ec (filter-map
               (λ (x)
                 (cond
                   [(equal? x "") #f]
@@ -97,7 +96,7 @@
                                                             (string->number (substring x 2)))]
                   [(equal? (substring x 0 1) "(") #f]
                   [else (string->symbol x)]))
-              ec)))
+              ec)])
     ec))
 
 (define (oxidation-states-mapper os)

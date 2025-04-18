@@ -14,7 +14,6 @@
 (require "types.rkt")
 
 (define cmd-prefix (make-parameter ""))
-(cmd-prefix "wsl")
 
 (define (system/in cmd in [bytes? #f])
   (define pref+cmd (string-append (cmd-prefix) " " cmd))

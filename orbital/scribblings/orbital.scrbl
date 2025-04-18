@@ -3,7 +3,7 @@
                     racket/base]]
 
 @title{orbital}
-@author{ironmoon}
+@author{ironmoon kcvedula}
 
 @defmodule[orbital]
 

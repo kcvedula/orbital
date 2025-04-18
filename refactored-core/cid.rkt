@@ -15,9 +15,10 @@
     (https-get
      (string-append
       "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
-      (smiles-v s)"/cids/TXT")
+      (smiles-v s)
+      "/cids/TXT")
      port->string))
-   ((compose cid string->number string-trim) raw))
+  ((compose cid string->number string-trim) raw))
 
 (define (cid->smiles c)
   (match-define (https-get-resp _ _ raw)
@@ -32,10 +33,10 @@
 (define (cid->raw-j3d c)
   (match-define (https-get-resp _ _ raw)
     (https-get
-    (string-append
-  "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
-    (number->string (cid-v c)) "/record/JSON?record_type=3d")
-    read-json))
+     (string-append
+      "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+      (number->string (cid-v c)) "/record/JSON?record_type=3d")
+     read-json))
   raw)
 
 (define x1 (cid->raw-j3d (cid 1)))

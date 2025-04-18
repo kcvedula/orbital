@@ -324,8 +324,7 @@ Compiler Pathway
         #:id #,num-id
         #:mass-number mass-number
         #:chirality chirality
-        #:formal-charge formal-charge)
-     )
+        #:formal-charge formal-charge))
     ((_ a:id)
      #'(compile-atom (a #f #f #f)))))
 
