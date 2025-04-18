@@ -9,29 +9,29 @@
          json
          file/sha1
          racket/draw
-         rackunit
+         racket/runtime-path
          racket/struct
+         rackunit
          "https-get.rkt"
          (only-in "types.rkt"
                   https-get-resp-raw
                   an-element-symbol
                   (element clean-element)))
 
+(define-runtime-path saved-periodic-table-path "periodic-table.rktd")
 
 (define (extract-periodic-table-json-from-internet)
   (define PT-URL-STRING "https://pubchem.ncbi.nlm.nih.gov/rest/pug/periodictable/JSON")
   (https-get-resp-raw (https-get PT-URL-STRING read-json))
-  (with-output-to-file "periodic-table.rktd"
+  (with-output-to-file saved-periodic-table-path
     (thunk (write (https-get-resp-raw (https-get PT-URL-STRING read-json))))
     #:exists 'replace))
 
 (define (periodic-table-json-saved?)
-  (file-exists? "periodic-table.rktd"))
+  (file-exists? saved-periodic-table-path))
 
 (define (read-saved-periodic-table-json)
-  (call-with-input-file "periodic-table.rktd" read))
-
-
+  (call-with-input-file saved-periodic-table-path read))
 
 (define extracted-json (if (periodic-table-json-saved?)
                            (read-saved-periodic-table-json)
@@ -79,23 +79,24 @@
   (let* ((ec (string-split ec))
 
          (ec (foldr
-              (λ (x acc) (if (equal? (substring x 0 1) "[")
-
-                             ;     012
-                             ; [He]2s2
-                             ; 01234
-                             (list* (substring x 1 3) (substring x 4) acc)
-                             (list* x acc)))
+              (λ (x acc)
+                (if (equal? (substring x 0 1) "[")
+                    ;     012
+                    ; [He]2s2
+                    ; 01234
+                    (list* (substring x 1 3) (substring x 4) acc)
+                    (list* x acc)))
               '()
               ec))
          (ec (filter-map
-              (λ (x) (cond
-                       [(equal? x "") #f]
-                       [(string->number (substring x 0 1)) (list (string->number (substring x 0 1))
-                                                                 (string->symbol (substring x 1 2))
-                                                                 (string->number (substring x 2)))]
-                       [(equal? (substring x 0 1) "(") #f]
-                       [else (string->symbol x)]))
+              (λ (x)
+                (cond
+                  [(equal? x "") #f]
+                  [(string->number (substring x 0 1)) (list (string->number (substring x 0 1))
+                                                            (string->symbol (substring x 1 2))
+                                                            (string->number (substring x 2)))]
+                  [(equal? (substring x 0 1) "(") #f]
+                  [else (string->symbol x)]))
               ec)))
     ec))
 

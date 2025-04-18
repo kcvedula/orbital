@@ -9,8 +9,7 @@
                         (eq? x cml)
                         (eq? x sdf)
                         (eq? x png))))
-       (or/c smiles? cml? sdf? png?)))
-  ))
+       (or/c smiles? cml? sdf? png?)))))
 
 (require "types.rkt")
 
@@ -35,7 +34,7 @@
     (match in
       ((smiles s) (values " -ismi - " s))
       ((cml s) (values " -icml - " s))))
-  
+
   (define output-flag
     (match output-callback
       ((== smiles) "-ocan")
@@ -48,4 +47,3 @@
     (string-append "obabel " input-flag output-flag)
     input-data
     (equal? output-callback png))))
-

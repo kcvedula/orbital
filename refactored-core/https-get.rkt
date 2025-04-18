@@ -7,8 +7,6 @@
          net/url
          "types.rkt")
 
-
-
 (define (https-get s handle-in)
   (define u (string->url s))
   (define conn-to-pubchem (http-conn-open (url-host u) #:ssl? #t))
@@ -19,4 +17,3 @@
 
   (http-conn-close! conn-to-pubchem)
   (https-get-resp status headers raw))
-

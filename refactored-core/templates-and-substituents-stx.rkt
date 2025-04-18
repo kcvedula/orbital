@@ -28,7 +28,6 @@
 
 (define (mol->pict m)
   (png->pict (babel (mol->cml m) png)))
-   
 
 ;-------------------------------------------------------------------------------
 ; Procedures, Static Checks and Syntax for an-element-symbol                   |
@@ -66,12 +65,12 @@
 (syntax-spec
  (host-interface/expression
   (sketch-template
-    #:atoms a:spec-atom ...
-    #:bonds b:spec-bond ...)
+   #:atoms a:spec-atom ...
+   #:bonds b:spec-bond ...)
   #:binding (scope (import a) ... b ...)
-    #'(compile-sketch-template->template
-       #:atoms a ...
-       #:bonds b ...))
+  #'(compile-sketch-template->template
+     #:atoms a ...
+     #:bonds b ...))
 
  (host-interface/definitions
   (define-sketch-template
@@ -83,12 +82,12 @@
     (symbol-table-set! st
                        #'id
                        #'(compile-sketch-template->template
-                        #:atoms a ...
-                        #:bonds b ...))
+                          #:atoms a ...
+                          #:bonds b ...))
     #'(begin (define id (compile-sketch-template->template
-       #:atoms a ...
-       #:bonds b ...)))))
-             
+                         #:atoms a ...
+                         #:bonds b ...)))))
+
  (nonterminal/exporting spec-atom
                         ; simple
                         id:racket-var
@@ -114,7 +113,7 @@
 
 (define-sketch-template ex-1
   #:atoms
-  C-1 C-2 C-3 C-4 C-5 C-6 C-7 C-8 
+  C-1 C-2 C-3 C-4 C-5 C-6 C-7 C-8
   #:bonds
   (C-1 C-2 1 #f)
   (C-2 C-3)
@@ -124,13 +123,12 @@
   (C-6 C-1)
   (C-1 C-7)
   (C-7 C-8)
-  (C-8 C-4)
-  )
+  (C-8 C-4))
 
 (define-syntax (foo id)
   (syntax-parse id
     ((_ id) (print (symbol-table-has-key? st #'id))))
-#'(void))
+  #'(void))
 
 #;(foo ex-1) ; ERROR HERE
 
@@ -139,50 +137,49 @@
 ; we want to replicate this behavior with:
 
 #;(define ex-2.2
-  (extend-template
-   ex-1
-   #:atoms C-9
-   #:bonds (C-1 C-9)))
+    (extend-template
+     ex-1
+     #:atoms C-9
+     #:bonds (C-1 C-9)))
 ; maybe by doing define-template and define-template/extend
 
 #;(begin
-   (define cycle-ex-1 (sketch-template
-                       #:atoms C-1 C-2 C-3 C-4 C-5
-                       #:bonds
-                       (C-1 C-2)
-                       (C-2 C-3)
-                       (C-3 C-4)
-                       (C-4 C-5)
-                       (C-5 C-1)))
-   ; expands to
-   (template+
-    (list 
-    (an-element-symbol->template (get-an-element-symbol C) #:id 1)
-    (an-element-symbol->template (get-an-element-symbol C) #:id 2)
-    (an-element-symbol->template (get-an-element-symbol C) #:id 3)
-    (an-element-symbol->template (get-an-element-symbol C) #:id 4)
-    (an-element-symbol->template (get-an-element-symbol C) #:id 5))
-    (list
-     (bond 1 2)
-     (bond 2 3)
-     (bond 3 4)
-     (bond 4 5)
-     (bond 5 1)))
-   (define cycle-ex-2 (ring 5)) ; should we just implement this right into runtime functions?
-   (define template-extension-ex-1
-     (extend-template
+    (define cycle-ex-1 (sketch-template
+                        #:atoms C-1 C-2 C-3 C-4 C-5
+                        #:bonds
+                        (C-1 C-2)
+                        (C-2 C-3)
+                        (C-3 C-4)
+                        (C-4 C-5)
+                        (C-5 C-1)))
+    ; expands to
+    (template+
+     (list
+      (an-element-symbol->template (get-an-element-symbol C) #:id 1)
+      (an-element-symbol->template (get-an-element-symbol C) #:id 2)
+      (an-element-symbol->template (get-an-element-symbol C) #:id 3)
+      (an-element-symbol->template (get-an-element-symbol C) #:id 4)
+      (an-element-symbol->template (get-an-element-symbol C) #:id 5))
+     (list
+      (bond 1 2)
+      (bond 2 3)
+      (bond 3 4)
+      (bond 4 5)
+      (bond 5 1)))
+    (define cycle-ex-2 (ring 5)) ; should we just implement this right into runtime functions?
+    (define template-extension-ex-1
+      (extend-template
+       cycle-ex-1
+       #:atoms (C-6 #f #f #f)
+       #:bonds (C-1 C-6) (C-4 C-6))) ; this shouldn't use the same compile time checks as sketch template,
+    ; but it should compile similarly,
+    ; should expand to
+    (template+
+     (list
       cycle-ex-1
-      #:atoms (C-6 #f #f #f)
-      #:bonds (C-1 C-6) (C-4 C-6))) ; this shouldn't use the same compile time checks as sketch template,
-   ; but it should compile similarly,
-   ; should expand to
-   (template+
-    (list
-     cycle-ex-1
-     (an-element-symbol->template (get-an-element-symbol C) #:id 6))
-    (list (bond 1 6))
-    (list (bond 4 6)))
-    )
+      (an-element-symbol->template (get-an-element-symbol C) #:id 6))
+     (list (bond 1 6))
+     (list (bond 4 6))))
 
 ;-------------------------------------------------------------------------------
 ; Template Extension
@@ -200,7 +197,7 @@ Compiler Pathway
 2. check well-formedness of complex atoms and bonds
 3. check that the graph of all atoms and bonds is connected
 4. compile to a template
-|#                                                                             
+|#
 ;-------------------------------------------------------------------------------
 (define-syntax (compile-sketch-template->template stx)
   (syntax-parse stx
@@ -278,7 +275,7 @@ Compiler Pathway
 
 (define-for-syntax (enforce-contract a-contract stx caller msg)
   (unless ((or/c a-contract (or/c symbol? #f)) (host-expr->datum stx))
-    (raise-syntax-error 
+    (raise-syntax-error
      caller
      (string-append "expected: " msg " or #f")
      stx)))
@@ -296,10 +293,10 @@ Compiler Pathway
      (car stx-vs))))
 
 (define-for-syntax (connected? vs es)
-    (define forest (make-immutable-hash (map (λ (v) (cons v (uf-new v))) vs)))
-    (for-each (λ (e) (uf-union! (hash-ref forest (car e)) (hash-ref forest (cdr e)))) es)
-    (define sets (hash-values forest))
-    (andmap (λ (s) (uf-same-set? s (car sets))) (cdr sets)))
+  (define forest (make-immutable-hash (map (λ (v) (cons v (uf-new v))) vs)))
+  (for-each (λ (e) (uf-union! (hash-ref forest (car e)) (hash-ref forest (cdr e)))) es)
+  (define sets (hash-values forest))
+  (andmap (λ (s) (uf-same-set? s (car sets))) (cdr sets)))
 
 (define-for-syntax (compile-atom->vertex stx)
   (syntax-parse stx

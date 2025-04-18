@@ -19,7 +19,6 @@
    (add1 id)
    (list id)))
 
-
 ; [Set/Delete]
 
 ; check they actually exist in there
@@ -59,7 +58,7 @@
   (match-define (substituent _ _ s-nid1 _) s1)
   (define t-nid2 (+ t-nid1 (sub1 s-nid1)))
   (define s2 (alpha-offset
-               (remove-bonding-atom-ids s1 sbaid1) (sub1 t-nid1))) ; increment substituent
+              (remove-bonding-atom-ids s1 sbaid1) (sub1 t-nid1))) ; increment substituent
   (define sbaid2 (+ sbaid1 (sub1 t-nid1)))
   (define res (template+ t s2 (bond tbaid sbaid2 order stereo)))
   (if (= 1 num-times)
@@ -70,12 +69,12 @@
 ; check overlapping ids and check that the bonds only reference
 ; bonding atom ids
 #;(define (template+ t1 t2 . bs)
-  (match-define (template atoms1 bonds1 nid1 baids1) t1)
-  (match-define (template atoms2 bonds2 nid2 baids2) t2)
-  (template (hash-union atoms1 atoms2)
-            (append bs bonds1 bonds2)
-            (max nid1 nid2)
-            (append baids1 baids2)))
+    (match-define (template atoms1 bonds1 nid1 baids1) t1)
+    (match-define (template atoms2 bonds2 nid2 baids2) t2)
+    (template (hash-union atoms1 atoms2)
+              (append bs bonds1 bonds2)
+              (max nid1 nid2)
+              (append baids1 baids2)))
 
 (define (templates+ ts bs)
   (template
@@ -86,7 +85,6 @@
 
 (define (template+ t1 t2 . bs)
   (templates+ (list t1 t2) bs))
-   
 
 ; [Conversion]
 

@@ -15,12 +15,12 @@
   (define elem (list-ref periodic-table (sub1 num)))
   (define rad (* (atomic-radius-scale)
                  (element-atomic-radius elem)))
-  (combine 
+  (combine
    (with-color
-      (rgba (if (element-cpk-color elem)
-                (element-cpk-color elem)
-                (rgba "black")))
-    (sphere (pos x y z) rad))
+       (rgba (if (element-cpk-color elem)
+                 (element-cpk-color elem)
+                 (rgba "black")))
+     (sphere (pos x y z) rad))
    (basis id (move (dir x y z)))))
 
 (define (atoms3d->pict3d as)
@@ -36,14 +36,13 @@
   (define d (* rad 1.5)) ; bigger than radius
   (transform
    (cond [(equal? order 1) cyl]
-        [(equal? order 2) (combine (move-x cyl d)
-                                   (move-x cyl (- d)))]
-        [(equal? order 3) (combine (move-x cyl d)
-                                   cyl
-                                   (move-x cyl (- d)))]
-        [else (error "higher order bonds not supported: " order)])
+         [(equal? order 2) (combine (move-x cyl d)
+                                    (move-x cyl (- d)))]
+         [(equal? order 3) (combine (move-x cyl d)
+                                    cyl
+                                    (move-x cyl (- d)))]
+         [else (error "higher order bonds not supported: " order)])
    (point-at p1 p2)))
-   
 
 (define (add-bond p b)
   (match-define (bond3d a1 a2 order) b) ; TODO handle order correctly

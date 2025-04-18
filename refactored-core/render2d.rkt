@@ -4,8 +4,7 @@
 
 (require (only-in pict bitmap pict?)
          racket/draw
-         "types.rkt"
-         "periodic-table.rkt")
+         "types.rkt")
 
 (define (png->pict p)
   (define img
