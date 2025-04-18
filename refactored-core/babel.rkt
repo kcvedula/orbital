@@ -31,15 +31,15 @@
   (define-values
     (input-flag input-data)
     (match in
-      ((smiles s) (values " -ismi - " s))
-      ((cml s) (values " -icml - " s))))
+      [(smiles s) (values " -ismi - " s)]
+      [(cml s) (values " -icml - " s)]))
 
   (define output-flag
     (match output-callback
-      ((== smiles) "-ocan")
-      ((== cml) "-ocml")
-      ((== sdf) "-osdf --gen3d")
-      ((== png) "-opng --gen2d")))
+      [(== smiles) "-ocan"]
+      [(== cml) "-ocml"]
+      [(== sdf) "-osdf --gen3d"]
+      [(== png) "-opng --gen2d"]))
 
   (output-callback
    (system/in

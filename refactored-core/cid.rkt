@@ -68,9 +68,9 @@
   (map atom3d
        (hash-ref atoms3djson 'aid)
        (hash-ref atoms3djson 'element)
-       (hash-ref coords3djson 'x)
-       (hash-ref coords3djson 'y)
-       (hash-ref coords3djson 'z)))
+       xs
+       ys
+       zs))
 
 (define (cid->mol3d c)
   (define j3d (dive-j3d (cid->raw-j3d c)))
