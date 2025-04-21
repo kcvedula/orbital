@@ -55,13 +55,13 @@ The target frames per second of the simulation. Defaults to 144.
 The angle (in radians) the camera rotates per key press. Defaults to 0.5 degrees in radians.
 
 @defparam[DELTA-MOVE dist Positive-Real]
-The distance the camera moves per frame. Computed as @${\frac{20}{FPS}}.
+The distance the camera moves per frame. Defaults to @${\frac{20}{FPS}}.
 
 @defparam[FOV degs Positive-Real]
 The field of view (in degrees) for the 3D camera. Defaults to 60.
 
 @defthing[WS Type]{A structure representing the current world state.
-Contains the current scene, camera position, orientation, and pressed keys.}
+ Contains the current scene, camera position, orientation, and pressed keys.}
 
 @section[#:tag "core"]{Core & Data Types}
 
@@ -302,7 +302,6 @@ Contains the current scene, camera position, orientation, and pressed keys.}
  @racketblock[(babel (smiles "O") cml)]
 }
 
-
 @subsection{PubChem Conversion}
 
 @defproc[(smiles->cid [s smiles?]) cid?]{
@@ -329,4 +328,13 @@ Contains the current scene, camera position, orientation, and pressed keys.}
  @simple-ex[(cid->mol3d (cid 702))]
 }
 
+@subsection{CML}
 
+@defproc[(mol->cml [m mol?]) cml?]{
+ Converts a @racket[mol] structure into a @racket[cml] value (Chemical Markup Language).
+
+ The resulting @racket[cml] value is an XML-based string representation of the molecule, containing atoms and bonds as conforming CML markup. This is useful for exporting or visualizing molecular data in interoperable formats.
+
+ Atom attributes like @tt{mass-number} and @tt{formal-charge} are included if present. Bond stereochemistry is also preserved.
+
+ @simple-ex[(mol->cml water) ] }
