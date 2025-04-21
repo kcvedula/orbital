@@ -4,6 +4,9 @@
   (require rackunit))
 
 
+(require "private/types.rkt")
+(provide (all-from-out "private/types.rkt"))
+
 
 ; TODO: export files from main
 

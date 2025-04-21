@@ -5,30 +5,35 @@
 (require (only-in racket/draw color%)
          pict/convert)
 
-; types for periodic table
+; ------------------------- types for periodic table ---------------------------
+
+
+;; An 
 (struct/contract an-element-symbol ((v symbol?)) #:transparent)
 
-(struct/contract element
-  [(atomic-number (between/c 1 118)) 
-   (symbol an-element-symbol?) 
-   (name symbol?) 
-   (atomic-mass number?) 
-   (cpk-color (or/c (is-a?/c color%) #f)) 
-   (electron-configuration list?)
-   (electronegativity (or/c number? #f))
-   (atomic-radius (or/c number? #f))
-   (ionization-energy (or/c number? #f))
-   (electron-affinity (or/c number? #f)) 
-   (oxidation-states (listof number?)) 
-   (standard-state symbol?)
-   (melting-point (or/c number? #f))
-   (boiling-point (or/c number? #f))
-   (density (or/c number? #f)) 
-   (group-block string?) 
-   (year-discovered (or/c number? #f))] 
-  #:transparent)
 
-; types for molecules
+(struct/contract
+ element
+ [(atomic-number (between/c 1 118))
+  (symbol an-element-symbol?)
+  (name symbol?)
+  (atomic-mass number?)
+  (cpk-color (or/c (is-a?/c color%) #f))
+  (electron-configuration list?)
+  (electronegativity (or/c number? #f))
+  (atomic-radius (or/c number? #f))
+  (ionization-energy (or/c number? #f))
+  (electron-affinity (or/c number? #f))
+  (oxidation-states (listof number?))
+  (standard-state symbol?)
+  (melting-point (or/c number? #f))
+  (boiling-point (or/c number? #f))
+  (density (or/c number? #f))
+  (group-block string?)
+  (year-discovered (or/c number? #f))]
+ #:transparent)
+
+; ---------------------------- types for molecules -----------------------------
 (struct/contract
  atom
  ((element an-element-symbol?)
@@ -59,20 +64,20 @@
  #:transparent)
 
 (struct/contract
-  substituent
-  template
-  ()
-  #:transparent)
+ substituent
+ template
+ ()
+ #:transparent)
 
 (struct/contract
-  info-substituent-addition
-  ((substituent substituent?)
-   (bond bond?)
-   (num-times (between/c 1 8)))
-  #:transparent)
+ info-substituent-addition
+ ((substituent substituent?)
+  (bond bond?)
+  (num-times (between/c 1 8)))
+ #:transparent)
 
 
-; types for babel
+; ------------------------------ types for babel -------------------------------
 
 (struct/contract smiles ((v string?)) #:transparent)
 
@@ -82,14 +87,14 @@
 
 (struct/contract png ((v bytes?)) #:transparent)
 
-; types for pubchem
+; ----------------------------- types for pubchem ------------------------------
 
 (struct/contract cid ((v positive-integer?)) #:transparent)
 
 (struct/contract conformer ((v string?)) #:transparent)
 
 
-; types for 3d generation
+; -------------------------- types for 3d generation ---------------------------
 
 (struct/contract
  atom3d
@@ -113,6 +118,6 @@
   (bonds3d (listof bond3d?)))
  #:transparent)
 
-; types for networking
+; --------------------------- types for networking -----------------------------
 
-(struct https-get-resp (status headers raw) #:transparent)
+(struct https-get-resp [status headers raw] #:transparent)

@@ -9,3 +9,7 @@ compiled/
 *.bak
 
 .racket-fhs-home
+
+**/scribblings/*.css
+**/scribblings/*.js
+**/scribblings/*.html
