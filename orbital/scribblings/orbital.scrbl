@@ -212,7 +212,7 @@ Represents a PubChem Compound ID.
 Represents a PubChem conformer identifier string.
 }
 
-@subsection{3D}
+@subsection{3D & Rendering}
 
 @defstruct*[atom3d
             ([id positive-integer?]
@@ -236,6 +236,18 @@ Represents a bond between two atoms in 3D space, by their IDs. The @tt{order} fi
 Represents a molecule with 3D coordinates for atoms and their corresponding bonds. Used for visualization
 }
 
+@defproc[(png->pict [p png?]) pict?]{
+Converts a @racket[png] object—containing raw PNG bytes—into a @racket[pict] that can be used for rendering.
+}
+
+@defproc[(mol3d->pict3d [m mol3d?]) pict3d?]{
+Renders a 3D molecular structure into a @racket[pict3d] scene.
+
+Atoms are displayed as spheres using their van der Waals radius and CPK color (if available), and bonds are shown as cylinders. Bond multiplicity (single, double, triple) is visually represented by parallel cylinders.
+
+Useful for visualizing geometry or exploring molecules interactively via @racket[explore].
+}
+
 @subsection{Networking}
 
 @defstruct*[https-get-resp
@@ -245,23 +257,4 @@ Represents a molecule with 3D coordinates for atoms and their corresponding bond
 Represents the result of an HTTPS GET request. This is our internal representation and includes the status code, headers, and raw response body.
 }
 
-
-@section[#:tag "rendering"]{Rendering}
-
-@subsection{2D Rendering}
-
-@defproc[(png->pict [p png?]) pict?]{
-Converts a @racket[png] object—containing raw PNG bytes—into a @racket[pict] that can be used for rendering.
-}
-
-
-@subsection{3D Rendering}
-
-@defproc[(mol3d->pict3d [m mol3d?]) pict3d?]{
-Renders a 3D molecular structure into a @racket[pict3d] scene.
-
-Atoms are displayed as spheres using their van der Waals radius and CPK color (if available), and bonds are shown as cylinders. Bond multiplicity (single, double, triple) is visually represented by parallel cylinders.
-
-Useful for visualizing geometry or exploring molecules interactively via @racket[explore].
-}
 
