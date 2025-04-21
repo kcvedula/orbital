@@ -3,4 +3,12 @@
 .\#*
 .DS_Store
 compiled/
+katex/
 /doc/
+*.css
+*.js
+*.html
+
+
+
+

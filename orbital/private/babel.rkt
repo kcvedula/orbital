@@ -12,7 +12,7 @@
 
 (require "types.rkt")
 
-(define cmd-prefix (make-parameter ""))
+(define cmd-prefix (make-parameter "" string?))
 
 (define (system/in cmd in [bytes? #f])
   (define pref+cmd (string-append (cmd-prefix) " " cmd))

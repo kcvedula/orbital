@@ -1,8 +1,10 @@
 #lang scribble/manual
-@require[scribble/example
+@require[scribble-math
+         scribble-math/dollar
+         scribble/example
          (for-syntax racket/base syntax/parse)
          (for-label racket orbital
-                    pict3d
+                    (only-in pict3d pict3d?)
                     (only-in pict pict bitmap pict?))]
 
 
@@ -18,7 +20,7 @@
 @define[(kbd text) (tt text)]
 
 
-@title{orbital}
+@title[#:tag "orbital" #:style (with-html5 manual-doc-style)]{orbital}
 @author{kcvedula, ironmoon}
 
 @defmodule[orbital]
@@ -45,6 +47,21 @@ Likewise, the following keys are used to control the camera:
  @item{@kbd{q}, @kbd{e} roll the camera left and right respectively}
  @item{The arrow keys @kbd{up}, @kbd{down}, @kbd{left}, @kbd{right} rotate the camera in their corresponding directions}]
 
+
+@defparam[FPS frames Positive-Integer]
+The target frames per second of the simulation. Defaults to 144.
+
+@defparam[DELTA-LOOK rads Real]
+The angle (in radians) the camera rotates per key press. Defaults to 0.5 degrees in radians.
+
+@defparam[DELTA-MOVE dist Positive-Real]
+The distance the camera moves per frame. Computed as @${\frac{20}{FPS}}.
+
+@defparam[FOV degs Positive-Real]
+The field of view (in degrees) for the 3D camera. Defaults to 60.
+
+@defthing[WS Type]{A structure representing the current world state.
+Contains the current scene, camera position, orientation, and pressed keys.}
 
 @section[#:tag "core"]{Core & Data Types}
 
@@ -85,11 +102,11 @@ Likewise, the following keys are used to control the camera:
 }
 
 @defthing[periodic-table (listof element?)]{
-A cleaned list of chemical elements, parsed from PubChem's periodic table dataset.
+ A cleaned list of chemical elements, parsed from PubChem's periodic table dataset.
 
-Each entry is an @racket[element] struct, constructed from raw PubChem data and normalized to ensure consistent types and structure (e.g., parsed oxidation states, electron configurations, and colors).
+ Each entry is an @racket[element] struct, constructed from raw PubChem data and normalized to ensure consistent types and structure (e.g., parsed oxidation states, electron configurations, and colors).
 
-This table is loaded from a local cache on disk, or fetched and saved on first use.
+ This table is loaded from a local cache on disk, or fetched and saved on first use.
 }
 
 
@@ -190,26 +207,26 @@ This table is loaded from a local cache on disk, or fetched and saved on first u
 @subsection{Babel Format}
 
 @defstruct*[smiles ([v string?])]{
-Represents a SMILES (Simplified Molecular Input Line Entry System) string encoding a molecule.
+ Represents a SMILES (Simplified Molecular Input Line Entry System) string encoding a molecule.
 }
 
 @defstruct*[cml ([v string?])]{
-Represents a CML (Chemical Markup Language) document as a string.
+ Represents a CML (Chemical Markup Language) document as a string.
 }
 
 @defstruct*[png ([v bytes?])]{
-Represents an image of a molecule encoded as PNG bytes.
+ Represents an image of a molecule encoded as PNG bytes.
 }
 
 
 @subsection{PubChem}
 
 @defstruct*[cid ([v positive-integer?])]{
-Represents a PubChem Compound ID.
+ Represents a PubChem Compound ID.
 }
 
 @defstruct*[conformer ([v string?])]{
-Represents a PubChem conformer identifier string.
+ Represents a PubChem conformer identifier string.
 }
 
 @subsection{3D & Rendering}
@@ -220,32 +237,32 @@ Represents a PubChem conformer identifier string.
              [x real?]
              [y real?]
              [z real?])]{
-Represents an atom in 3D space. The @tt{id} is a unique identifier, and @tt{element} is the atomic number. Coordinates are given in Cartesian space.
+ Represents an atom in 3D space. The @tt{id} is a unique identifier, and @tt{element} is the atomic number. Coordinates are given in Cartesian space.
 }
 
 @defstruct*[bond3d
             ([a1 positive-integer?]
              [a2 positive-integer?]
              [order (or/c 1 2 3)])]{
-Represents a bond between two atoms in 3D space, by their IDs. The @tt{order} field specifies whether the bond is single, double, or triple.
+ Represents a bond between two atoms in 3D space, by their IDs. The @tt{order} field specifies whether the bond is single, double, or triple.
 }
 
 @defstruct*[mol3d
             ([atoms3d (listof atom3d?)]
              [bonds3d (listof bond3d?)])]{
-Represents a molecule with 3D coordinates for atoms and their corresponding bonds. Used for visualization
+ Represents a molecule with 3D coordinates for atoms and their corresponding bonds. Used for visualization
 }
 
 @defproc[(png->pict [p png?]) pict?]{
-Converts a @racket[png] object—containing raw PNG bytes—into a @racket[pict] that can be used for rendering.
+ Converts a @racket[png] object—containing raw PNG bytes—into a @racket[pict] that can be used for rendering.
 }
 
 @defproc[(mol3d->pict3d [m mol3d?]) pict3d?]{
-Renders a 3D molecular structure into a @racket[pict3d] scene.
+ Renders a 3D molecular structure into a @racket[pict3d] scene.
 
-Atoms are displayed as spheres using their van der Waals radius and CPK color (if available), and bonds are shown as cylinders. Bond multiplicity (single, double, triple) is visually represented by parallel cylinders.
+ Atoms are displayed as spheres using their van der Waals radius and CPK color (if available), and bonds are shown as cylinders. Bond multiplicity (single, double, triple) is visually represented by parallel cylinders.
 
-Useful for visualizing geometry or exploring molecules interactively via @racket[explore].
+ Useful for visualizing geometry or exploring molecules interactively via @racket[explore].
 }
 
 @subsection{Networking}
@@ -254,7 +271,62 @@ Useful for visualizing geometry or exploring molecules interactively via @racket
             ([status any/c]
              [headers any/c]
              [raw any/c])]{
-Represents the result of an HTTPS GET request. This is our internal representation and includes the status code, headers, and raw response body.
+ Represents the result of an HTTPS GET request. This is our internal representation and includes the status code, headers, and raw response body.
+}
+
+@section[#:tag "conversion"]{Conversions}
+
+
+@subsection{Babel Conversion}
+
+@defparam[cmd-prefix prefix string?]{
+ A parameter that holds a prefix string to prepend to shell commands.
+ This is used internally when invoking external tools like Open Babel.
+ By default an empty string.
+
+ @simple-ex[(cmd-prefix "nix-shell --run")]
+ @simple-ex[(cmd-prefix "wsl")]
+}
+
+@defproc[(babel [input (or/c smiles? cml?)] [output-format (or/c (== smiles) (== cml) (== png))]) (or/c smiles? cml? png?)]{
+ Converts molecular data between supported formats (e.g., SMILES, CML, PNG) using Open Babel.
+
+ @itemlist[
+ @item{@racket[input] is the input molecule data, represented as a @racket[smiles] or @racket[cml] struct.}
+ @item{@racket[output-format] is the desired output format, specified as one of the constructors @racket[smiles], @racket[cml], or @racket[png].}
+ ]
+
+ Returns a new value of the corresponding output type.
+
+ @; todo: how to eval this when it uses cmd line?
+ @racketblock[(babel (smiles "O") cml)]
+}
+
+
+@subsection{PubChem Conversion}
+
+@defproc[(smiles->cid [s smiles?]) cid?]{
+ Looks up the PubChem Compound ID (CID) for a given @racket[smiles] representation of a molecule.
+
+ This uses PubChem's PUG REST interface to resolve the structure.
+
+ @simple-ex[(smiles->cid (smiles "CCO"))]
+}
+
+@defproc[(cid->smiles [c cid?]) smiles?]{
+ Fetches the canonical SMILES string for the given PubChem Compound ID.
+
+ This is useful for retrieving standardized structure representations.
+
+ @simple-ex[(cid->smiles (cid 702))]
+}
+
+@defproc[(cid->mol3d [c cid?]) mol3d?]{
+ Downloads a 3D molecular structure for the given PubChem Compound ID and converts it to a @racket[mol3d] value.
+
+ This structure can be rendered using @racket[mol3d->pict3d] or explored with @racket[explore].
+
+ @simple-ex[(cid->mol3d (cid 702))]
 }
 
 

@@ -10,6 +10,4 @@ compiled/
 
 .racket-fhs-home
 
-**/scribblings/*.css
-**/scribblings/*.js
-**/scribblings/*.html
+
