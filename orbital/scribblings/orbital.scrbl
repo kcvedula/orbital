@@ -175,3 +175,63 @@ Likewise, the following keys are used to control the camera:
  @item{@tt{num-times} is how many times the substituent should be inserted at that location (e.g., for symmetry or repetition).}
  ]
 }
+
+@subsection{Babel Format Types}
+
+@defstruct*[smiles ([v string?])]{
+Represents a SMILES (Simplified Molecular Input Line Entry System) string encoding a molecule.
+}
+
+@defstruct*[cml ([v string?])]{
+Represents a CML (Chemical Markup Language) document as a string.
+}
+
+@defstruct*[png ([v bytes?])]{
+Represents an image of a molecule encoded as PNG bytes.
+}
+
+
+@subsection{PubChem Types}
+
+@defstruct*[cid ([v positive-integer?])]{
+Represents a PubChem Compound ID.
+}
+
+@defstruct*[conformer ([v string?])]{
+Represents a PubChem conformer identifier string.
+}
+
+@subsection{3D Molecule Types}
+
+@defstruct*[atom3d
+            ([id positive-integer?]
+             [element (and/c natural? (between/c 1 118))]
+             [x real?]
+             [y real?]
+             [z real?])]{
+Represents an atom in 3D space. The @tt{id} is a unique identifier, and @tt{element} is the atomic number. Coordinates are given in Cartesian space.
+}
+
+@defstruct*[bond3d
+            ([a1 positive-integer?]
+             [a2 positive-integer?]
+             [order (or/c 1 2 3)])]{
+Represents a bond between two atoms in 3D space, by their IDs. The @tt{order} field specifies whether the bond is single, double, or triple.
+}
+
+@defstruct*[mol3d
+            ([atoms3d (listof atom3d?)]
+             [bonds3d (listof bond3d?)])]{
+Represents a molecule with 3D coordinates for atoms and their corresponding bonds. Used for visualization
+}
+
+@subsection{Networking Types}
+
+@defstruct*[https-get-resp
+            ([status any/c]
+             [headers any/c]
+             [raw any/c])]{
+Represents the result of an HTTPS GET request. This is our internal representation and includes the status code, headers, and raw response body.
+}
+
+
