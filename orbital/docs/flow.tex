@@ -1,0 +1,55 @@
+\documentclass[tikz]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing, calligraphy}
+
+\tikzset{
+  node/.style={draw, rounded corners, minimum width=2cm, align=center},
+  edge/.style={->, thick, >=Latex},
+  bi/.style={<->, thick, >=Latex},
+}
+
+\begin{document}
+\begin{tikzpicture}
+
+% Nodes
+\node (syntax) {syntax};
+\node[below=of syntax] (template1) {template};
+\node[right=of template1] (substituent) {substituent};
+\node[below=of template1] (mol) {mol};
+\node[below=of mol] (cml) {cml};
+\node[below left=of cml] (smiles) {smiles};
+\node[below=of cml] (png) {png};
+\node[right=of png] (pict) {pict};
+\node[below=of smiles] (eid) {eid};
+\node[below=of eid] (json) {json};
+\node[below=of json] (mol3d) {mol3d};
+\node[below=of mol3d] (pict3d) {pict3d};
+
+% Edges
+\draw[edge] (syntax) -- (template1);
+\draw[edge, bend left=30] (template1) to node[above] {\scriptsize is-a} (substituent);
+\draw[edge, bend left=30] (substituent) to node[below] {\scriptsize has-a} (template1);
+\draw[edge] (template1) -- (mol);
+\draw[edge] (mol) -- (cml);
+\draw[bi] (cml) -- (smiles);
+\draw[edge] (smiles) -- (eid);
+\draw[edge] (eid) -- (json);
+\draw[edge] (json) -- (mol3d);
+\draw[edge] (mol3d) -- (pict3d);
+\draw[edge] (cml) -- (png);
+\draw[edge] (png) -- (pict);
+\draw[thick]
+  ([xshift=-2.4cm,yshift=0.2cm]cml.center) -- 
+  ([xshift=-2.6cm,yshift=0.2cm]cml.center) --
+  ([xshift=-2.6cm,yshift=-0.2cm]png.center) --
+  ([xshift=-2.4cm,yshift=-0.2cm]png.center);
+\node[rotate=90] at ([xshift=-2.8cm,yshift=0.7cm]png.center) {{babel}};
+\draw[thick]
+  ([xshift=-0.4cm,yshift=0.2cm]eid.center) -- 
+  ([xshift=-0.6cm,yshift=0.2cm]eid.center) --
+  ([xshift=-0.6cm,yshift=-0.2cm]json.center) --
+  ([xshift=-0.4cm,yshift=-0.2cm]json.center);
+\node[rotate=90] at ([xshift=-0.8cm,yshift=0.7cm]json.center) {{pubchem}};
+
+\end{tikzpicture}
+\end{document}
