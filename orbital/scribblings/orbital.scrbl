@@ -7,7 +7,6 @@
                     (only-in pict3d pict3d?)
                     (only-in pict pict bitmap pict?))]
 
-
 @; Create an evaluator to use for examples blocks with the DSL required.
 @(define eval (make-base-eval '(require racket orbital)))
 
@@ -25,51 +24,17 @@
 
 @defmodule[orbital]
 
-Orbital is a chemistry DSL used for composing molecules, 
+Orbital is a chemistry DSL used for composing molecules and rendering them.
+It allows for converting between different representations of molecules.
 
 @table-of-contents[]
-
-
-@section[#:tag "explore"]{explore}
-
-@defproc[(explore [pict Pict3d]) WS]
-Creates an interactive 3D window using @link["https://docs.racket-lang.org/pict3d/index.html"]{pict3d}.
-Some aspects of the 
-
-
-The following keys are used for movement:
-@itemlist[
- @item{@kbd{w}, @kbd{a}, @kbd{s}, @kbd{d} to move forward, left, back, and right in space relative to the camera}
- @item{@kbd{space}, @kbd{shift} to move up and down respectivly}]
-
-Likewise, the following keys are used to control the camera:
-@itemlist[
- @item{@kbd{q}, @kbd{e} roll the camera left and right respectively}
- @item{The arrow keys @kbd{up}, @kbd{down}, @kbd{left}, @kbd{right} rotate the camera in their corresponding directions}]
-
-
-@defparam[FPS frames Positive-Integer]
-The target frames per second of the simulation. Defaults to 144.
-
-@defparam[DELTA-LOOK rads Real]
-The angle (in radians) the camera rotates per key press. Defaults to 0.5 degrees in radians.
-
-@defparam[DELTA-MOVE dist Positive-Real]
-The distance the camera moves per frame. Defaults to @${\frac{20}{FPS}}.
-
-@defparam[FOV degs Positive-Real]
-The field of view (in degrees) for the 3D camera. Defaults to 60.
-
-@defthing[WS Type]{A structure representing the current world state.
- Contains the current scene, camera position, orientation, and pressed keys.}
 
 @section[#:tag "core"]{Core & Data Types}
 
 @subsection{Periodic Table}
 
-
-@defstruct*[an-element-symbol ([v symbol?])]{Represents the atomic symbol of an element
-
+@defstruct*[an-element-symbol ([v symbol?])]{
+ Represents the atomic symbol of an element
  @simple-ex[(an-element-symbol 'H)]
  @simple-ex[(an-element-symbol 'Fe)]
 }
@@ -96,7 +61,7 @@ The field of view (in degrees) for the 3D camera. Defaults to 60.
  Some fields are optional and may be @racket[#f] if unknown.
 
  @simple-ex[(element 1 (an-element-symbol 'H) 'Hydrogen 1.008
-                     (make-object color% 255 255 255) '((1 s 1))
+                     #f '((1 s 1))
                      2.2 120 13.598 0.754 '(1 -1) 'gas
                      13.81 20.28 8.988e-5 "Nonmetal" 1766)]
 }
@@ -194,13 +159,15 @@ The field of view (in degrees) for the 3D camera. Defaults to 60.
 @defstruct*[info-substituent-addition
             ([substituent substituent?]
              [bond bond?]
-             [num-times (between/c 1 8)])]{
+             [num-times (between/c 1 8)]
+             [remove? any/c])]{
  Describes how a @racket[substituent] should be added to a molecular template.
 
  @itemlist[
  @item{@tt{substituent} is the fragment to be inserted.}
  @item{@tt{bond} specifies where the substituent will attach — the atoms in the bond correspond to IDs in the host template and the substituent.}
  @item{@tt{num-times} is how many times the substituent should be inserted at that location (e.g., for symmetry or repetition).}
+ @item{@tt{remove?} optionally remove the bonding atom id}
  ]
 }
 
@@ -338,3 +305,36 @@ The field of view (in degrees) for the 3D camera. Defaults to 60.
  Atom attributes like @tt{mass-number} and @tt{formal-charge} are included if present. Bond stereochemistry is also preserved.
 
  @simple-ex[(mol->cml water) ] }
+
+@section[#:tag "explore"]{explore}
+
+@defproc[(explore [pict Pict3d]) WS]
+Creates an interactive 3D window using @link["https://docs.racket-lang.org/pict3d/index.html"]{pict3d}.
+Some aspects of the 
+
+
+The following keys are used for movement:
+@itemlist[
+ @item{@kbd{w}, @kbd{a}, @kbd{s}, @kbd{d} to move forward, left, back, and right in space relative to the camera}
+ @item{@kbd{space}, @kbd{shift} to move up and down respectivly}]
+
+Likewise, the following keys are used to control the camera:
+@itemlist[
+ @item{@kbd{q}, @kbd{e} roll the camera left and right respectively}
+ @item{The arrow keys @kbd{up}, @kbd{down}, @kbd{left}, @kbd{right} rotate the camera in their corresponding directions}]
+
+
+@defparam[FPS frames Positive-Integer]
+The target frames per second of the simulation. Defaults to 144.
+
+@defparam[DELTA-LOOK rads Real]
+The angle (in radians) the camera rotates per key press. Defaults to 0.5 degrees in radians.
+
+@defparam[DELTA-MOVE dist Positive-Real]
+The distance the camera moves per frame. Defaults to @${\frac{20}{FPS}}.
+
+@defparam[FOV degs Positive-Real]
+The field of view (in degrees) for the 3D camera. Defaults to 60.
+
+@defthing[WS Type]{A structure representing the current world state.
+ Contains the current scene, camera position, orientation, and pressed keys.}

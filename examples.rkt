@@ -1,14 +1,5 @@
 #lang racket
-(require "templates-and-substituents.rkt"
-         "templates-and-substituents-stx.rkt"
-         "types.rkt"
-         "render2d.rkt"
-         "mol-to-cml.rkt"
-         "babel.rkt"
-         "periodic-table.rkt"
-         "render3d.rkt"
-         "cid.rkt"
-         "explore.rkt"
+(require orbital
          (for-syntax syntax/parse))
 
 (define (mol->pict m)
@@ -195,4 +186,4 @@ Halides
                                          1
                                          #f)))
 
-         
+#; (explore-mol ex-2-phenyl-with-cyclopropyls)
