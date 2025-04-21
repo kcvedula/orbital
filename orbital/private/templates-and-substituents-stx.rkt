@@ -59,9 +59,6 @@
 ; Syntax Specification                                                         |
 ; ------------------------------------------------------------------------------
 
-(begin-for-syntax
-  (define-persistent-symbol-table st))
-
 (syntax-spec
  (host-interface/expression
   (sketch-template
@@ -78,15 +75,9 @@
     #:atoms a:spec-atom ...
     #:bonds b:spec-bond ...)
   #:binding [(export id) (scope (import a) ... b ...)]
-  (begin
-    (symbol-table-set! st
-                       #'id
-                       #'(compile-sketch-template->template
-                          #:atoms a ...
-                          #:bonds b ...))
-    #'(begin (define id (compile-sketch-template->template
-                         #:atoms a ...
-                         #:bonds b ...)))))
+  #'(begin (define id (compile-sketch-template->template
+                       #:atoms a ...
+                       #:bonds b ...))))
 
  (nonterminal/exporting spec-atom
                         ; simple
@@ -124,15 +115,6 @@
   (C-1 C-7)
   (C-7 C-8)
   (C-8 C-4))
-
-(define-syntax (foo id)
-  (syntax-parse id
-    ((_ id) (print (symbol-table-has-key? st #'id))))
-  #'(void))
-
-#;(foo ex-1) ; ERROR HERE
-
-
 
 ; we want to replicate this behavior with:
 
