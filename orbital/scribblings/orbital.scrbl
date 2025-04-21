@@ -1,7 +1,9 @@
 #lang scribble/manual
 @require[scribble/example
          (for-syntax racket/base syntax/parse)
-         (for-label racket orbital)]
+         (for-label racket orbital
+                    pict3d
+                    (only-in pict pict bitmap pict?))]
 
 
 @; Create an evaluator to use for examples blocks with the DSL required.
@@ -44,9 +46,9 @@ Likewise, the following keys are used to control the camera:
  @item{The arrow keys @kbd{up}, @kbd{down}, @kbd{left}, @kbd{right} rotate the camera in their corresponding directions}]
 
 
-@section[#:tag "types"]{Core Data Types}
+@section[#:tag "core"]{Core & Data Types}
 
-@subsection{Periodic Table Types}
+@subsection{Periodic Table}
 
 
 @defstruct*[an-element-symbol ([v symbol?])]{Represents the atomic symbol of an element
@@ -82,7 +84,16 @@ Likewise, the following keys are used to control the camera:
                      13.81 20.28 8.988e-5 "Nonmetal" 1766)]
 }
 
-@subsection{Molecule Types}
+@defthing[periodic-table (listof element?)]{
+A cleaned list of chemical elements, parsed from PubChem's periodic table dataset.
+
+Each entry is an @racket[element] struct, constructed from raw PubChem data and normalized to ensure consistent types and structure (e.g., parsed oxidation states, electron configurations, and colors).
+
+This table is loaded from a local cache on disk, or fetched and saved on first use.
+}
+
+
+@subsection{Molecule}
 
 @defstruct*[atom
             ([element an-element-symbol?]
@@ -176,7 +187,7 @@ Likewise, the following keys are used to control the camera:
  ]
 }
 
-@subsection{Babel Format Types}
+@subsection{Babel Format}
 
 @defstruct*[smiles ([v string?])]{
 Represents a SMILES (Simplified Molecular Input Line Entry System) string encoding a molecule.
@@ -191,7 +202,7 @@ Represents an image of a molecule encoded as PNG bytes.
 }
 
 
-@subsection{PubChem Types}
+@subsection{PubChem}
 
 @defstruct*[cid ([v positive-integer?])]{
 Represents a PubChem Compound ID.
@@ -201,7 +212,7 @@ Represents a PubChem Compound ID.
 Represents a PubChem conformer identifier string.
 }
 
-@subsection{3D Molecule Types}
+@subsection{3D}
 
 @defstruct*[atom3d
             ([id positive-integer?]
@@ -225,7 +236,7 @@ Represents a bond between two atoms in 3D space, by their IDs. The @tt{order} fi
 Represents a molecule with 3D coordinates for atoms and their corresponding bonds. Used for visualization
 }
 
-@subsection{Networking Types}
+@subsection{Networking}
 
 @defstruct*[https-get-resp
             ([status any/c]
@@ -234,4 +245,23 @@ Represents a molecule with 3D coordinates for atoms and their corresponding bond
 Represents the result of an HTTPS GET request. This is our internal representation and includes the status code, headers, and raw response body.
 }
 
+
+@section[#:tag "rendering"]{Rendering}
+
+@subsection{2D Rendering}
+
+@defproc[(png->pict [p png?]) pict?]{
+Converts a @racket[png] object—containing raw PNG bytes—into a @racket[pict] that can be used for rendering.
+}
+
+
+@subsection{3D Rendering}
+
+@defproc[(mol3d->pict3d [m mol3d?]) pict3d?]{
+Renders a 3D molecular structure into a @racket[pict3d] scene.
+
+Atoms are displayed as spheres using their van der Waals radius and CPK color (if available), and bonds are shown as cylinders. Bond multiplicity (single, double, triple) is visually represented by parallel cylinders.
+
+Useful for visualizing geometry or exploring molecules interactively via @racket[explore].
+}
 
