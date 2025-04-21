@@ -46,13 +46,13 @@
 (define (add-substituents t . isas)
   (define (folder isa acc)
     (add-substituent acc isa))
-  (foldl folder isas))
+  (foldl folder t isas))
 
 ; assumes the bond in isa has the template bonding atom id first
 ; and then the substituent bonding id
 ; check template bonding ids
 (define (add-substituent t isa)
-  (match-define (info-substituent-addition s1 b num-times) isa)
+  (match-define (info-substituent-addition s1 b num-times remove?) isa)
   (match-define (bond tbaid sbaid1 order stereo) b)
   (match-define (template _ _ t-nid1 _) t)
   (match-define (substituent _ _ s-nid1 _) s1)
@@ -62,9 +62,11 @@
   (define sbaid2 (+ sbaid1 (sub1 t-nid1)))
   (define res (template+ t s2 (bond tbaid sbaid2 order stereo)))
   (if (= 1 num-times)
-      res
+      (if remove?
+          (remove-bonding-atom-ids res tbaid)
+          res)
       (add-substituent res (info-substituent-addition
-                            s1 b (sub1 num-times)))))
+                            s1 b (sub1 num-times) remove?))))
 
 ; check overlapping ids and check that the bonds only reference
 ; bonding atom ids

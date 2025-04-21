@@ -19,6 +19,8 @@
           "types.rkt"
           "periodic-table.rkt"))
 
+(provide (all-defined-out))
+
 ;-------------------------------------------------------------------------------
 ; Runtime Rendering for Testing during Development                             |
 ;-------------------------------------------------------------------------------

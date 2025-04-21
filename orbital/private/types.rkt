@@ -72,7 +72,8 @@
  info-substituent-addition
  ((substituent substituent?)
   (bond bond?)
-  (num-times (between/c 1 8)))
+  (num-times (between/c 1 8))
+  (remove? any/c))
  #:transparent)
 
 ; ------------------------------ types for babel -------------------------------
