@@ -10,10 +10,15 @@
 @; Create an evaluator to use for examples blocks with the DSL required.
 @(define eval (make-base-eval '(require racket orbital)))
 
-@(define-syntax simple-ex
+@(define-syntax ex
    (syntax-parser
      [(_ inner ...+)
-      #'(examples #:eval eval #:label #f (eval:no-prompt inner ...))]))
+      #'(examples #:eval eval #:label #f #:no-prompt (code:line inner ...))]))
+@(define-syntax ex-err
+   (syntax-parser
+     [(_ inner ...+)
+      #'(examples #:eval eval #:label #f #:no-prompt (eval:error inner ...))]))
+
 
 @;; TODO: how do I make this use <kbd>?
 @define[(kbd text) (tt text)]
@@ -35,9 +40,8 @@ It allows for converting between different representations of molecules.
 
 @defstruct*[an-element-symbol ([v symbol?])]{
  Represents the atomic symbol of an element
- @simple-ex[(an-element-symbol 'H)]
- @simple-ex[(an-element-symbol 'Fe)]
-}
+ @ex[(an-element-symbol 'H)]
+ @ex[(an-element-symbol 'Fe)]}
 
 @defstruct*[element
             ([atomic-number (between/c 1 118)]
@@ -60,19 +64,17 @@ It allows for converting between different representations of molecules.
  Represents a chemical element and its associated properties. The properties will generally be fetched from pubchem.
  Some fields are optional and may be @racket[#f] if unknown.
 
- @simple-ex[(element 1 (an-element-symbol 'H) 'Hydrogen 1.008
+ @ex[(element 1 (an-element-symbol 'H) 'Hydrogen 1.008
                      #f '((1 s 1))
                      2.2 120 13.598 0.754 '(1 -1) 'gas
-                     13.81 20.28 8.988e-5 "Nonmetal" 1766)]
-}
+                     13.81 20.28 8.988e-5 "Nonmetal" 1766)]}
 
 @defthing[periodic-table (listof element?)]{
  A cleaned list of chemical elements, parsed from PubChem's periodic table dataset.
 
  Each entry is an @racket[element] struct, constructed from raw PubChem data and normalized to ensure consistent types and structure (e.g., parsed oxidation states, electron configurations, and colors).
 
- This table is loaded from a local cache on disk, or fetched and saved on first use.
-}
+ This table is loaded from a local cache on disk, or fetched and saved on first use.}
 
 
 @subsection{Molecule}
@@ -88,13 +90,10 @@ It allows for converting between different representations of molecules.
  @itemlist[
  @item{@tt{mass-number} — the isotope mass number (e.g., 12, 14)}
  @item{@tt{chirality} — whether the atom is chiral and its configuration (R or S)}
- @item{@tt{formal-charge} — the formal charge on the atom}
- ]
+ @item{@tt{formal-charge} — the formal charge on the atom}]
 
- @simple-ex[(atom (an-element-symbol 'C) 12 'R 0)]
- @simple-ex[(atom (an-element-symbol 'O) #f #f -1)]
-
-}
+ @ex[(atom (an-element-symbol 'C) 12 'R 0)]
+ @ex[(atom (an-element-symbol 'O) #f #f -1)]}
 
 @defstruct*[bond
             ([id1 positive-integer?]
@@ -107,9 +106,7 @@ It allows for converting between different representations of molecules.
  @item{@tt{id1} and @tt{id2} are atom IDs in the molecule}
  @item{@tt{order} is the bond order — must be 1 (single), 2 (double), or 3 (triple)}
  @item{@tt{stereo} indicates geometric isomerism (cis/trans), where @racket['E] means "entgegen" (opposite) and @racket['Z] means "zusammen" (together); @racket[#f] if not applicable}
- ]
-
-}
+ ]}
 
 @defstruct*[mol
             ([atoms (hash/c positive-integer? atom?)]
@@ -123,7 +120,7 @@ It allows for converting between different representations of molecules.
 
  This struct serves as the base representation for molecular fragments and complete molecules. It is extended by other types such as @racket[template] and @racket[substituent].
 
- @simple-ex[
+ @ex[
  (define h (atom (an-element-symbol 'H) #f #f 0))
  (define o (atom (an-element-symbol 'O) #f #f 0))
  (define water
@@ -132,9 +129,7 @@ It allows for converting between different representations of molecules.
               3 h)
         (list (bond 1 2 1 #f)
               (bond 2 3 1 #f))))
- (mol-bonds water)
- ]
-}
+ (mol-bonds water)]}
 
 @defstruct*[(template mol)
             ([next-id positive-integer?]
@@ -142,8 +137,10 @@ It allows for converting between different representations of molecules.
  Represents a molecular fragment under construction, extending @racket[mol].
 
  @itemlist[
- @item{@tt{next-id} is the next available atom ID that can be assigned. It must be greater than any existing atom ID in the @racket[atoms] hash.}
- @item{@tt{bonding-atoms-ids} is a list of atom IDs that represent "open bonding sites" — atoms in the fragment that are available to connect to other fragments or substituents.}
+ @item{@tt{next-id} is the next available atom ID that can be assigned.
+   It must be greater than any existing atom ID in the @racket[atoms] hash.}
+ @item{@tt{bonding-atoms-ids} is a list of atom IDs that represent "open bonding sites" —
+   atoms in the fragment that are available to connect to other fragments or substituents.}
  ]
 
  This struct is typically used when composing molecules from smaller pieces.
@@ -153,7 +150,8 @@ It allows for converting between different representations of molecules.
 @defstruct*[(substituent template) ()]{
  Represents a reusable molecular fragment that can be attached to another molecule. Inherits from @racket[template].
 
- A @racket[substituent] typically contains one or more open bonding sites, defined by @racket[bonding-atoms-ids], that determine how it can be connected to a larger structure.
+ A @racket[substituent] typically contains one or more open bonding sites,
+ defined by @racket[bonding-atoms-ids], that determine how it can be connected to a larger structure.
 }
 
 @defstruct*[info-substituent-addition
@@ -165,11 +163,11 @@ It allows for converting between different representations of molecules.
 
  @itemlist[
  @item{@tt{substituent} is the fragment to be inserted.}
- @item{@tt{bond} specifies where the substituent will attach — the atoms in the bond correspond to IDs in the host template and the substituent.}
- @item{@tt{num-times} is how many times the substituent should be inserted at that location (e.g., for symmetry or repetition).}
- @item{@tt{remove?} optionally remove the bonding atom id}
- ]
-}
+ @item{@tt{bond} specifies where the substituent will attach —
+   the atoms in the bond correspond to IDs in the host template and the substituent.}
+ @item{@tt{num-times} is how many times the substituent should be
+   inserted at that location (e.g., for symmetry or repetition).}
+ @item{@tt{remove?} optionally remove the bonding atom id}]}
 
 @subsection{Babel Format}
 
@@ -196,49 +194,14 @@ It allows for converting between different representations of molecules.
  Represents a PubChem conformer identifier string.
 }
 
-@subsection{3D & Rendering}
-
-@defstruct*[atom3d
-            ([id positive-integer?]
-             [element (and/c natural? (between/c 1 118))]
-             [x real?]
-             [y real?]
-             [z real?])]{
- Represents an atom in 3D space. The @tt{id} is a unique identifier, and @tt{element} is the atomic number. Coordinates are given in Cartesian space.
-}
-
-@defstruct*[bond3d
-            ([a1 positive-integer?]
-             [a2 positive-integer?]
-             [order (or/c 1 2 3)])]{
- Represents a bond between two atoms in 3D space, by their IDs. The @tt{order} field specifies whether the bond is single, double, or triple.
-}
-
-@defstruct*[mol3d
-            ([atoms3d (listof atom3d?)]
-             [bonds3d (listof bond3d?)])]{
- Represents a molecule with 3D coordinates for atoms and their corresponding bonds. Used for visualization
-}
-
-@defproc[(png->pict [p png?]) pict?]{
- Converts a @racket[png] object—containing raw PNG bytes—into a @racket[pict] that can be used for rendering.
-}
-
-@defproc[(mol3d->pict3d [m mol3d?]) pict3d?]{
- Renders a 3D molecular structure into a @racket[pict3d] scene.
-
- Atoms are displayed as spheres using their van der Waals radius and CPK color (if available), and bonds are shown as cylinders. Bond multiplicity (single, double, triple) is visually represented by parallel cylinders.
-
- Useful for visualizing geometry or exploring molecules interactively via @racket[explore].
-}
-
 @subsection{Networking}
 
 @defstruct*[https-get-resp
             ([status any/c]
              [headers any/c]
              [raw any/c])]{
- Represents the result of an HTTPS GET request. This is our internal representation and includes the status code, headers, and raw response body.
+ Represents the result of an HTTPS GET request.
+ This is our internal representation and includes the status code, headers, and raw response body.
 }
 
 @section[#:tag "conversion"]{Conversions}
@@ -251,8 +214,8 @@ It allows for converting between different representations of molecules.
  This is used internally when invoking external tools like Open Babel.
  By default an empty string.
 
- @simple-ex[(cmd-prefix "nix-shell --run")]
- @simple-ex[(cmd-prefix "wsl")]
+ @ex[(cmd-prefix "nix-shell --run")]
+ @ex[(cmd-prefix "wsl")]
 }
 
 @defproc[(babel [input (or/c smiles? cml?)] [output-format (or/c (== smiles) (== cml) (== png))]) (or/c smiles? cml? png?)]{
@@ -260,7 +223,8 @@ It allows for converting between different representations of molecules.
 
  @itemlist[
  @item{@racket[input] is the input molecule data, represented as a @racket[smiles] or @racket[cml] struct.}
- @item{@racket[output-format] is the desired output format, specified as one of the constructors @racket[smiles], @racket[cml], or @racket[png].}
+ @item{@racket[output-format] is the desired output format, specified as one of the
+   constructors @racket[smiles], @racket[cml], or @racket[png].}
  ]
 
  Returns a new value of the corresponding output type.
@@ -276,7 +240,7 @@ It allows for converting between different representations of molecules.
 
  This uses PubChem's PUG REST interface to resolve the structure.
 
- @simple-ex[(smiles->cid (smiles "CCO"))]
+ @ex[(smiles->cid (smiles "CCO"))]
 }
 
 @defproc[(cid->smiles [c cid?]) smiles?]{
@@ -284,7 +248,7 @@ It allows for converting between different representations of molecules.
 
  This is useful for retrieving standardized structure representations.
 
- @simple-ex[(cid->smiles (cid 702))]
+ @ex[(cid->smiles (cid 702))]
 }
 
 @defproc[(cid->mol3d [c cid?]) mol3d?]{
@@ -292,7 +256,7 @@ It allows for converting between different representations of molecules.
 
  This structure can be rendered using @racket[mol3d->pict3d] or explored with @racket[explore].
 
- @simple-ex[(cid->mol3d (cid 702))]
+ @ex[(cid->mol3d (cid 702))]
 }
 
 @subsection{CML}
@@ -304,9 +268,142 @@ It allows for converting between different representations of molecules.
 
  Atom attributes like @tt{mass-number} and @tt{formal-charge} are included if present. Bond stereochemistry is also preserved.
 
- @simple-ex[(mol->cml water) ] }
+ @ex[(mol->cml water) ] }
 
-@section[#:tag "explore"]{explore}
+@section[#:tag "comp"]{Composition & Templates}
+
+@subsection{Template Composition}
+
+@defproc[(an-element-symbol->template
+          [aes an-element-symbol?]
+          [#:id id positive-integer? 1]
+          [#:mass-number mass-number (or/c #f positive-integer?) #f]
+          [#:chirality chirality (or/c #f 'R 'S) #f]
+          [#:formal-charge formal-charge (or/c #f integer?) #f]) template?]{
+
+ Creates a new @racket[template] from a single atom given its atomic symbol and optional properties.
+
+ This is a utility constructor for building molecular fragments from individual elements.
+
+ @ex[(define C-templ (an-element-symbol->template (an-element-symbol 'C)))
+            C-templ]
+ @ex[(define N-templ (an-element-symbol->template (an-element-symbol 'N) #:formal-charge 1))
+            N-templ]}
+
+@defproc[(remove-bonding-atom-ids [t template?] [baids-to-remove positive-integer?] ...) template?]{
+ Removes one or more bonding atom IDs from a template, updating its open bonding sites.
+
+ @ex[(remove-bonding-atom-ids C-templ 1)]}
+
+@defproc[(alpha-offset [t template?] [offset-amount exact-integer?]) template?]{
+ Applies an offset to all atom IDs in a template. Useful when combining templates to ensure non-overlapping IDs.
+
+ @ex[(alpha-offset C-templ 10)]}
+
+@defproc[(add-substituent [t template?] [isa info-substituent-addition?]) template?]{
+ Adds a single substituent to a template, attaching it according to the given bond and options.
+ If the substituent is to be added multiple times, this is done recursively.
+
+ @ex[
+ (define sub-N (template->substituent N-templ))
+ (define isa (info-substituent-addition
+              sub-N
+              (bond 1 1 1 #f)
+              1
+              #f))
+ (add-substituent C-templ isa)]}
+
+@defproc[(add-substituents [t template?] [isas info-substituent-addition?] ...) template?]{
+ Adds multiple substituents to a template. Each @racket[info-substituent-addition] specifies how and where to attach a substituent fragment.
+
+ @ex[
+ (define sub-N (template->substituent N-templ))
+ (add-substituents C-templ
+                   (info-substituent-addition sub-N (bond 1 1 1 #f) 1 #f)
+                   (info-substituent-addition sub-N (bond 1 1 1 #f) 1 #f))]}
+
+@defproc[(template+ [t1 template?] [t2 template?] [bs bond?] ...) template?]{
+ Combines two templates into one, merging atoms, bonds, and bonding sites. Additional bonds can be specified.
+
+ @ex[
+ (define C2-templ (alpha-offset C-templ 10))
+ (template+ C-templ C2-templ (bond 1 11 1 #f))]}
+
+@defproc[(templates+ [ts (listof template?)] [bs (listof bond?)]) template?]{
+ Merges a list of templates and bonds into a single @racket[template].
+
+ @ex[
+ (define t1 (an-element-symbol->template (an-element-symbol 'C)))
+ (define t2 (alpha-offset t1 10))
+ (template+ t1 t2 (bond 1 11 1 #f))]}
+
+@defproc[(template->substituent-possible? [t template?]) boolean?]{
+ Returns @racket[#t] if the template can be safely converted into a @racket[substituent] (i.e., it has exactly one bonding site).
+
+ @ex[
+ (define mono-tmpl (an-element-symbol->template (an-element-symbol 'Cl)))
+ (template->substituent-possible? mono-tmpl)]
+
+ @ex[
+ (define multi-tmpl
+   (templates+ (list mono-tmpl (alpha-offset mono-tmpl 10))
+               (list (bond 1 11 1 #f))))
+ (template->substituent-possible? multi-tmpl)]}
+
+@defproc[(template->substituent [t template?]) substituent?]{
+ Converts a template into a substituent. This only works if the template has exactly one bonding atom ID. Otherwise, raises an error.
+
+ @ex[
+ (define mono-tmpl (an-element-symbol->template (an-element-symbol 'F)))
+ (template->substituent mono-tmpl)]
+ @ex-err[
+ (template->substituent multi-tmpl)
+ ]}
+
+
+@section[#:tag "render"]{Rendering}
+
+@subsection{Data Definitions}
+
+@defstruct*[atom3d
+            ([id positive-integer?]
+             [element (and/c natural? (between/c 1 118))]
+             [x real?]
+             [y real?]
+             [z real?])]{
+ Represents an atom in 3D space. The @tt{id} is a unique identifier, and @tt{element} is the atomic number.
+ Coordinates are given in Cartesian space.
+}
+
+@defstruct*[bond3d
+            ([a1 positive-integer?]
+             [a2 positive-integer?]
+             [order (or/c 1 2 3)])]{
+ Represents a bond between two atoms in 3D space, by their IDs.
+ The @tt{order} field specifies whether the bond is single, double, or triple.
+}
+
+@defstruct*[mol3d
+            ([atoms3d (listof atom3d?)]
+             [bonds3d (listof bond3d?)])]{
+ Represents a molecule with 3D coordinates for atoms and their corresponding bonds. Used for visualization
+}
+
+@subsection{Explore (2D Rendering)}
+
+@defproc[(png->pict [p png?]) pict?]{
+ Converts a @racket[png] object—containing raw PNG bytes—into a @racket[pict] that can be used for rendering.
+}
+
+@subsection{Explore (3D viewer)}
+
+@defproc[(mol3d->pict3d [m mol3d?]) pict3d?]{
+ Renders a 3D molecular structure into a @racket[pict3d] scene.
+
+ Atoms are displayed as spheres using their van der Waals radius and CPK color (if available), and bonds are shown as cylinders. Bond multiplicity (single, double, triple) is visually represented by parallel cylinders.
+
+ Useful for visualizing geometry or exploring molecules interactively via @racket[explore].
+}
 
 @defproc[(explore [pict Pict3d]) WS]
 Creates an interactive 3D window using @link["https://docs.racket-lang.org/pict3d/index.html"]{pict3d}.
