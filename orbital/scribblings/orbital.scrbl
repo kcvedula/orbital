@@ -1,5 +1,16 @@
 #lang scribble/manual
-@require[@for-label[orbital racket/base]]
+@require[scribble/example
+         (for-syntax racket/base syntax/parse)
+         (for-label racket orbital)]
+
+
+@; Create an evaluator to use for examples blocks with the DSL required.
+@(define eval (make-base-eval '(require racket orbital)))
+
+@(define-syntax simple-ex
+   (syntax-parser
+     [(_ inner ...+)
+      #'(examples #:eval eval #:label #f (eval:no-prompt inner ...))]))
 
 @;; TODO: how do I make this use <kbd>?
 @define[(kbd text) (tt text)]
@@ -32,3 +43,135 @@ Likewise, the following keys are used to control the camera:
  @item{@kbd{q}, @kbd{e} roll the camera left and right respectively}
  @item{The arrow keys @kbd{up}, @kbd{down}, @kbd{left}, @kbd{right} rotate the camera in their corresponding directions}]
 
+
+@section[#:tag "types"]{Core Data Types}
+
+@subsection{Periodic Table Types}
+
+
+@defstruct*[an-element-symbol ([v symbol?])]{Represents the atomic symbol of an element
+
+ @simple-ex[(an-element-symbol 'H)]
+ @simple-ex[(an-element-symbol 'Fe)]
+}
+
+@defstruct*[element
+            ([atomic-number (between/c 1 118)]
+             [symbol an-element-symbol?]
+             [name symbol?]
+             [atomic-mass number?]
+             [cpk-color (or/c (is-a?/c color%) #f)]
+             [electron-configuration list?]
+             [electronegativity (or/c number? #f)]
+             [atomic-radius (or/c number? #f)]
+             [ionization-energy (or/c number? #f)]
+             [electron-affinity (or/c number? #f)]
+             [oxidation-states (listof number?)]
+             [standard-state symbol?]
+             [melting-point (or/c number? #f)]
+             [boiling-point (or/c number? #f)]
+             [density (or/c number? #f)]
+             [group-block string?]
+             [year-discovered (or/c number? #f)])]{
+ Represents a chemical element and its associated properties. The properties will generally be fetched from pubchem.
+ Some fields are optional and may be @racket[#f] if unknown.
+
+ @simple-ex[(element 1 (an-element-symbol 'H) 'Hydrogen 1.008
+                     (make-object color% 255 255 255) '((1 s 1))
+                     2.2 120 13.598 0.754 '(1 -1) 'gas
+                     13.81 20.28 8.988e-5 "Nonmetal" 1766)]
+}
+
+@subsection{Molecule Types}
+
+@defstruct*[atom
+            ([element an-element-symbol?]
+             [mass-number (or/c #f positive-integer?)]
+             [chirality (or/c #f 'R 'S)]
+             [formal-charge (or/c #f integer?)])]{
+ Represents a single atom in a molecule, including optional structural and chemical details.
+
+ All fields beyond the atomic symbol are optional and may be @racket[#f] when unspecified:
+ @itemlist[
+ @item{@tt{mass-number} — the isotope mass number (e.g., 12, 14)}
+ @item{@tt{chirality} — whether the atom is chiral and its configuration (R or S)}
+ @item{@tt{formal-charge} — the formal charge on the atom}
+ ]
+
+ @simple-ex[(atom (an-element-symbol 'C) 12 'R 0)]
+ @simple-ex[(atom (an-element-symbol 'O) #f #f -1)]
+
+}
+
+@defstruct*[bond
+            ([id1 positive-integer?]
+             [id2 positive-integer?]
+             [order (or/c 1 2 3)]
+             [stereo (or/c #f 'E 'Z)])]{
+ Represents a bond between two atoms in a molecule, typically a covalent.
+
+ @itemlist[
+ @item{@tt{id1} and @tt{id2} are atom IDs in the molecule}
+ @item{@tt{order} is the bond order — must be 1 (single), 2 (double), or 3 (triple)}
+ @item{@tt{stereo} indicates geometric isomerism (cis/trans), where @racket['E] means "entgegen" (opposite) and @racket['Z] means "zusammen" (together); @racket[#f] if not applicable}
+ ]
+
+}
+
+@defstruct*[mol
+            ([atoms (hash/c positive-integer? atom?)]
+             [bonds (listof bond?)])]{
+ Represents a molecular structure, composed of atoms and the bonds between them.
+
+ @itemlist[
+ @item{@tt{atoms} is a hash mapping unique positive integer IDs to @racket[atom] structs. These IDs are used to reference atoms in bonds.}
+ @item{@tt{bonds} is a list of @racket[bond] structs describing connections between the atoms.}
+ ]
+
+ This struct serves as the base representation for molecular fragments and complete molecules. It is extended by other types such as @racket[template] and @racket[substituent].
+
+ @simple-ex[
+ (define h (atom (an-element-symbol 'H) #f #f 0))
+ (define o (atom (an-element-symbol 'O) #f #f 0))
+ (define water
+   (mol (hash 1 h
+              2 o
+              3 h)
+        (list (bond 1 2 1 #f)
+              (bond 2 3 1 #f))))
+ (mol-bonds water)
+ ]
+}
+
+@defstruct*[(template mol)
+            ([next-id positive-integer?]
+             [bonding-atoms-ids (listof positive-integer?)])]{
+ Represents a molecular fragment under construction, extending @racket[mol].
+
+ @itemlist[
+ @item{@tt{next-id} is the next available atom ID that can be assigned. It must be greater than any existing atom ID in the @racket[atoms] hash.}
+ @item{@tt{bonding-atoms-ids} is a list of atom IDs that represent "open bonding sites" — atoms in the fragment that are available to connect to other fragments or substituents.}
+ ]
+
+ This struct is typically used when composing molecules from smaller pieces.
+}
+@; TODO: example
+
+@defstruct*[(substituent template) ()]{
+ Represents a reusable molecular fragment that can be attached to another molecule. Inherits from @racket[template].
+
+ A @racket[substituent] typically contains one or more open bonding sites, defined by @racket[bonding-atoms-ids], that determine how it can be connected to a larger structure.
+}
+
+@defstruct*[info-substituent-addition
+            ([substituent substituent?]
+             [bond bond?]
+             [num-times (between/c 1 8)])]{
+ Describes how a @racket[substituent] should be added to a molecular template.
+
+ @itemlist[
+ @item{@tt{substituent} is the fragment to be inserted.}
+ @item{@tt{bond} specifies where the substituent will attach — the atoms in the bond correspond to IDs in the host template and the substituent.}
+ @item{@tt{num-times} is how many times the substituent should be inserted at that location (e.g., for symmetry or repetition).}
+ ]
+}

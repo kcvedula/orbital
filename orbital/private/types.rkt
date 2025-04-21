@@ -7,11 +7,10 @@
 
 ; ------------------------- types for periodic table ---------------------------
 
-
-;; An 
+;; A element's periodic symbol
 (struct/contract an-element-symbol ((v symbol?)) #:transparent)
 
-
+;; An element
 (struct/contract
  element
  [(atomic-number (between/c 1 118))
@@ -75,7 +74,6 @@
   (bond bond?)
   (num-times (between/c 1 8)))
  #:transparent)
-
 
 ; ------------------------------ types for babel -------------------------------
 
