@@ -7,9 +7,8 @@
    (-> (or/c smiles? cml?)
        (or/c (λ (x) (or (eq? x smiles)
                         (eq? x cml)
-                        (eq? x sdf)
                         (eq? x png))))
-       (or/c smiles? cml? sdf? png?)))))
+       (or/c smiles? cml? png?)))))
 
 (require "types.rkt")
 
@@ -38,7 +37,6 @@
     (match output-callback
       [(== smiles) "-ocan"]
       [(== cml) "-ocml"]
-      [(== sdf) "-osdf --gen3d"]
       [(== png) "-opng --gen2d"]))
 
   (output-callback

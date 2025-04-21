@@ -81,8 +81,6 @@
 
 (struct/contract cml ((v string?)) #:transparent)
 
-(struct/contract sdf ((v string?)) #:transparent)
-
 (struct/contract png ((v bytes?)) #:transparent)
 
 ; ----------------------------- types for pubchem ------------------------------
@@ -90,7 +88,6 @@
 (struct/contract cid ((v positive-integer?)) #:transparent)
 
 (struct/contract conformer ((v string?)) #:transparent)
-
 
 ; -------------------------- types for 3d generation ---------------------------
 
