@@ -63,6 +63,7 @@ scribble scribblings/orbital.scrbl
 ```
 
 > [!WARNING]
+>
 > `raco docs` does not currently work due to a conflict with `racket/gui`.
 > Use Scribble directly or DrRacket.
 
@@ -93,3 +94,8 @@ source ./setup-xwayland.sh
 [examples]: ./examples.rkt
 [pubchem]: https://pubchem.ncbi.nlm.nih.gov/
 [openbabel]: http://openbabel.org/
+
+## Implementation Details
+
+For developers interested in the implementation architecture and source code
+organization of this DSL, see the [implementation guide](./orbital/private/README.md).
