@@ -67,6 +67,8 @@ scribble scribblings/orbital.scrbl
 > `raco docs` does not currently work due to a conflict with `racket/gui`.
 > Use Scribble directly or DrRacket.
 
+Also see [orbital/docs/flow.pdf](./orbital/docs/flow.pdf) for a flow diagram of the library.
+
 ## Wayland Note
 
 The way `Pict3D` interacts with `racket-gui` uses assumptions based on X11
