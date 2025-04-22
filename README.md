@@ -62,7 +62,8 @@ DrRacket and clicking "Scribble HTML", or by running:
 scribble scribblings/orbital.scrbl
 ```
 
-> [!WARNING] > `raco docs` does not currently work due to a conflict with `racket/gui`.
+> [!WARNING]
+> `raco docs` does not currently work due to a conflict with `racket/gui`.
 > Use Scribble directly or DrRacket.
 
 ## Wayland Note
