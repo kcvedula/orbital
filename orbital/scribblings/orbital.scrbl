@@ -65,9 +65,9 @@ It allows for converting between different representations of molecules.
  Some fields are optional and may be @racket[#f] if unknown.
 
  @ex[(element 1 (an-element-symbol 'H) 'Hydrogen 1.008
-                     #f '((1 s 1))
-                     2.2 120 13.598 0.754 '(1 -1) 'gas
-                     13.81 20.28 8.988e-5 "Nonmetal" 1766)]}
+              #f '((1 s 1))
+              2.2 120 13.598 0.754 '(1 -1) 'gas
+              13.81 20.28 8.988e-5 "Nonmetal" 1766)]}
 
 @defthing[periodic-table (listof element?)]{
  A cleaned list of chemical elements, parsed from PubChem's periodic table dataset.
@@ -286,9 +286,9 @@ It allows for converting between different representations of molecules.
  This is a utility constructor for building molecular fragments from individual elements.
 
  @ex[(define C-templ (an-element-symbol->template (an-element-symbol 'C)))
-            C-templ]
+     C-templ]
  @ex[(define N-templ (an-element-symbol->template (an-element-symbol 'N) #:formal-charge 1))
-            N-templ]}
+     N-templ]}
 
 @defproc[(remove-bonding-atom-ids [t template?] [baids-to-remove positive-integer?] ...) template?]{
  Removes one or more bonding atom IDs from a template, updating its open bonding sites.
@@ -359,6 +359,79 @@ It allows for converting between different representations of molecules.
  @ex-err[
  (template->substituent multi-tmpl)
  ]}
+@subsection{Sketch Template Syntax}
+
+These macros provide a high-level interface for constructing molecular templates directly
+from named atoms and bonds using a sketch-style syntax.
+
+@defform[#:literals (quote)
+         (sketch-template
+          #:atoms spec-atom ...
+          #:bonds spec-bond ...)
+         #:grammar
+         [(spec-atom id
+                     (id mass-number chirality formal-charge))
+          (spec-bond (id id)
+                     (id id order stereo))
+          (mass-number positive-integer)
+          (chirality 'R 'S #f)
+          (formal-charge integer #f)
+          (order 1 2 3)
+          (stereo 'E 'Z #f)
+          (id <element-symbol>-<positive-integer>)]]{
+ Constructs an anonymous @racket[template] from a declarative sketch-style syntax.
+
+ Each @racket[spec-atom] introduces a single atom, either by symbolic ID or as a full form
+ with mass number, chirality, and formal charge:
+
+ @racketblock[(C-1)
+              (C-7 13 'R 1)]
+
+ Each @racket[spec-bond] defines a bond between atoms, optionally with order and stereo:
+
+ @racketblock[(C-1 C-2)
+              (C-1 C-2 2 'E)]
+
+ Atom IDs must be of the form @tt{ElementSymbol-ID}, such as @tt{C-1} or @tt{Cl-7}, where the symbol is
+ a valid chemical element and the ID is a positive integer.
+}
+
+@defform[(define-sketch-template name
+           #:atoms spec-atom ...
+           #:bonds spec-bond ...)]{
+ Defines a named @racket[template] using the same syntax as @racket[sketch-template].
+
+ This is useful for reusable molecular fragments. See @racket[sketch-template] for grammar details.
+
+ @racketblock[
+ (define-sketch-template ring
+   #:atoms C-1 C-2 C-3 C-4 C-5 C-6
+   #:bonds (C-1 C-2)
+   (C-2 C-3)
+   (C-3 C-4)
+   (C-4 C-5)
+   (C-5 C-6)
+   (C-6 C-1))
+ ]
+}
+
+@defform[(extend-template
+          (base-tmpl
+           #:atoms spec-atom ...
+           #:bonds spec-bond ...))]{
+ Extends an existing @racket[template] with additional atoms and bonds.
+
+ The syntax is identical to @racket[sketch-template], but merges the base template with the new structure.
+
+ @racketblock[
+ (extend-template
+  (ring
+   #:atoms C-7
+   #:bonds (C-1 C-7)))
+ ]
+
+ See @racket[sketch-template] for grammar details.
+}
 
 
 @section[#:tag "render"]{Rendering}

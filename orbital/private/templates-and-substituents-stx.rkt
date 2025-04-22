@@ -19,8 +19,16 @@
           "types.rkt"
           "periodic-table.rkt"))
 
-(provide (all-defined-out))
+(provide
+  define-sketch-template
+  sketch-template
+  extend-template
+  mol->pict
 
+  compile-atom
+  compile-bond
+  
+  get-an-element-symbol)
 ;-------------------------------------------------------------------------------
 ; Runtime Rendering for Testing during Development                             |
 ;-------------------------------------------------------------------------------
